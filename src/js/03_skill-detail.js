@@ -12,7 +12,7 @@ function installBlock(s){
   if(!url){ const note=`<p class="small">Subscribe first — your personal install command (a link only you can use) appears here right after checkout.</p>`; return `<div class="itabs">${['Claude','Claude Code','Cursor','ChatGPT','Grok'].map((v,i)=>`<button class="${i===0?'on':''}" disabled>${v}</button>`).join('')}</div><div id="ibody">${note}</div>`; }
   const tabs = {claude:'Claude', code:'Claude Code', cursor:'Cursor', chatgpt:'ChatGPT', grok:'Grok'};
   const content = {
-    claude: `<ol class="steps"><li><b>Download</b> the skill with the button above (you get <code>${slug}/SKILL.md</code>).</li><li>In Claude: <b>Settings → Capabilities → Skills → Add skill</b>, and upload the folder.</li><li>Open a chat and type <i>“${esc(s.prompts[0])}”</i>. Claude will ask to connect ${(s.requires||[]).map(r=>mcp(r)?.name).filter(Boolean).join(' and ')||'nothing extra'} the first time.</li></ol>`,
+    claude: `<ol class="steps"><li><b>Download</b> the skill with the button above.</li><li>Open Claude, drop the file into a chat and say <i>“Save this as a skill.”</i> <span class="small">(Or Settings → Capabilities → Skills → Add skill.)</span></li><li>Then just ask: <i>“${esc(s.prompts[0])}”</i>. Claude will ask to connect ${(s.requires||[]).map(r=>mcp(r)?.name).filter(Boolean).join(' and ')||'nothing extra'} the first time.</li></ol>`,
     code: `<div class="code"><button class="cp" data-copy="mkdir -p ~/.claude/skills/${slug} && curl -fsSL ${url} -o ~/.claude/skills/${slug}/SKILL.md">Copy</button>mkdir -p ~/.claude/skills/${slug} \\
   && curl -fsSL ${url} \\
      -o ~/.claude/skills/${slug}/SKILL.md</div><p class="small" style="margin:10px 0 0">Then <code>/${slug}</code> in any session, or just ask in plain words.</p>`,
@@ -53,7 +53,7 @@ function detail(id){
     <div style="margin-top:14px">${reviews}</div>`;
   const cc = creatorCard(s.creator);
   const reqs = '' && (s.requires||[]).length ? `<div class="card" style="padding:14px 16px"><b style="color:var(--ink);font-size:13.5px">Needs</b>${(s.requires||[]).map(r=>{const m=mcp(r);return m?`<div style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13.5px"><span>${m.emoji}</span><a href="/mcp/${m.id}">${esc(m.name)}</a><span class="small" style="margin-left:auto">${/^Free/.test(m.price)?'free':'from free'}</span></div>`:''}).join('')}</div>`:'';
-  return `<div class="wrap">${pageHead(esc(s.name), `@${esc(s.creator)} · ${esc(s.cat)}`, isReal(s)?'/':'/examples')}
+  return `<div class="wrap">${pageHead(isReal(s)?'Skills':'Skill examples', isReal(s)?'/':'/examples')}
   <div class="detail"><div>
     <div class="card"><div class="dhead"><div class="em">${sIcon(s)}</div><div style="flex:1;min-width:0"><h1>${esc(s.name)}${s.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h1><div class="pitch">${esc(s.pitch)}</div><div class="by">${avatar(s.creator,24)} <b>${esc(c?.name||s.creator)}</b> @${esc(s.creator)} ${badge(c)}<button class="pill teal sm" id="follow" style="margin-left:6px">Follow</button></div>
       <div class="stats"><div><b>${fmtN(s.downloads)}</b>downloads</div><div><b>${stars(s.rating)} ${s.rating.toFixed(1)}</b>${s.ratings} ratings</div><div><b>v${s.version}</b>updated ${ago(s.updated)}</div><div><b>${esc(s.cadence.split(',')[0].slice(0,16))}</b>update cadence</div></div></div></div>
@@ -66,22 +66,30 @@ function detail(id){
     ${cc}${reqs}
   </div></div></div>`;
 }
-// The Blossom app's profile card: avatar, name, handle, followers · following · stocks, the portfolio donut, Follow.
+// The Blossom app's profile card, as in the app: avatar with teal ring, name + tick, handle, followers • following • stocks,
+// a framed panel with the allocation donut (callout chips on the ring, holdings count in the middle) and a full-width Follow bar,
+// then "Portfolio verified by Blossom" under the button.
 function donut(port){
   const COL=['#2EC4B6','#7361F7','#F7A541','#F25F7A','#4C8DF5','#9AA0A6'];
   let segs=port.filter(x=>x&&x.w>0).map(x=>({t:String(x.t),w:+x.w})).sort((a,b)=>b.w-a.w);
   const small=segs.filter(x=>x.w<3); if(small.length>1){ segs=segs.filter(x=>x.w>=3); segs.push({t:'Other', w:+small.reduce((a,x)=>a+x.w,0).toFixed(1)}); }
-  const tot=segs.reduce((a,x)=>a+x.w,0)||1; const R=54, C=2*Math.PI*R; let off=0;
-  const rings=segs.map((x,i)=>{ const len=C*x.w/tot; const el=`<circle r="${R}" cx="70" cy="70" fill="none" stroke="${COL[i%COL.length]}" stroke-width="16" stroke-dasharray="${len-2} ${C-len+2}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)"/>`; off+=len; return el; }).join('');
-  return `<div class="donut"><svg viewBox="0 0 140 140" width="150" height="150">${rings}</svg><div class="dc"><img src="data:image/svg+xml;base64,__BADGE__" alt=""><b>Verified</b><span>portfolio by Blossom</span></div></div>
-    <div class="dleg">${segs.slice(0,4).map((x,i)=>`<span><i style="background:${COL[i%COL.length]}"></i>${esc(x.t)} <b>${x.w.toFixed(1)}%</b></span>`).join('')}</div>`;
+  const tot=segs.reduce((a,x)=>a+x.w,0)||1; const S=240, cx=S/2, R=92, W=26, C=2*Math.PI*R; let off=0;
+  const rings=[], chips=[];
+  segs.forEach((x,i)=>{ const frac=x.w/tot, len=C*frac;
+    rings.push(`<circle r="${R}" cx="${cx}" cy="${cx}" fill="none" stroke="${COL[i%COL.length]}" stroke-width="${W}" stroke-dasharray="${Math.max(0,len-3)} ${C-len+3}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cx})"/>`);
+    if(i<3){ const mid=(off+len/2)/C, ang=(-90+360*mid)*Math.PI/180; const px=cx+R*Math.cos(ang), py=cx+R*Math.sin(ang);
+      const dark=x.t==='Other'; chips.push(`<span class="dchip" style="left:${px}px;top:${py}px"><i style="background:${dark?'#171717':COL[i%COL.length]}">${esc(dark?'OTHER':x.t.slice(0,4).toUpperCase())}</i>${x.w.toFixed(1)}%</span>`); }
+    off+=len; });
+  const n=port.filter(x=>x&&x.w>0).length;
+  return `<div class="donut2" style="width:${S}px;height:${S}px"><svg viewBox="0 0 ${S} ${S}" width="${S}" height="${S}">${rings.join('')}</svg>${chips.join('')}<div class="dc"><span class="cpill">${n} holding${n===1?'':'s'}</span><span class="clbl">Portfolio</span></div></div>`;
 }
 function creatorCard(h){
   const c=creator(h); if(!c) return '';
   const stats=[`${fmtN(c.followers||0)} Followers`, c.following?`${fmtN(c.following)} Following`:'', c.stocks?`${c.stocks} Stock${c.stocks===1?'':'s'}`:''].filter(Boolean).join(' • ');
-  return `<div class="card pcard2"><div class="pava">${avatar(h,64)}</div><div class="pname">${esc(c.name||h)} ${badge(c)}</div><div class="phandle">@${esc(h)}</div><div class="pstats">${stats}</div>
-    ${c.portfolio&&c.portfolio.length?donut(c.portfolio):''}
-    ${c.url?`<a class="pill pri lg" href="${esc(c.url)}" target="_blank" rel="noopener" style="width:100%;margin-top:14px;text-align:center">Follow on Blossom</a>`:''}</div>`;
+  const follow=c.url?`<a class="pfollow" href="${esc(c.url)}" target="_blank" rel="noopener">Follow</a>`:'';
+  const verified=c.portfolio&&c.portfolio.length?`<div class="pver"><img src="data:image/svg+xml;base64,__BADGE__" alt="">Portfolio verified by Blossom</div>`:'';
+  return `<div class="card pcard2"><div class="pava">${avatar(h,72)}<span class="pbolt"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></span></div><div class="pname">${esc(c.name||h)} ${badge(c)}</div><div class="phandle">@${esc(h)}</div><div class="pstats">${stats}</div>
+    ${c.portfolio&&c.portfolio.length?`<div class="ppanel">${donut(c.portfolio)}${follow}</div>${verified}`:(c.url?`<div class="ppanel" style="margin-top:14px">${follow}</div>`:'')}</div>`;
 }
 function bindDetail(id){
   const s=skill(id); if(!s) return;
