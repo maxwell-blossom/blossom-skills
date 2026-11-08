@@ -25,6 +25,7 @@ function library(){
   const mo = s => s.price.free?0:(s.price.monthly||(s.price.yearly||0)/12||(s.price.once||0)/12);   // monthly-equivalent price for sorting
   const sorters = {top:(a,b)=>b.rating*Math.log(b.ratings+1)-a.rating*Math.log(a.ratings+1), dl:(a,b)=>b.downloads-a.downloads, new:(a,b)=>b.updated.localeCompare(a.updated), price:(a,b)=>mo(a)-mo(b), pricehi:(a,b)=>mo(b)-mo(a)};
   list.sort(sorters[state.sort]);
+  if(state.sort==='top') list.sort((a,b)=>(b.remote?1:0)-(a.remote?1:0));   // real posts (published through the site) lead the default view; stable sort keeps the rating order within each group — Max, Nov 8
   const totalDl = D.skills.reduce((a,s)=>a+s.downloads,0);
   const hero = `<div class="hero"><div>
       <h1>🤖 The Best Skills and MCPs for&nbsp;Investors</h1>
