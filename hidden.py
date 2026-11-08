@@ -7,4 +7,5 @@ HIDDEN = {
     'weekly-buzz-briefing',
     'portfolio-roast',
     'what-are-my-follows-buying',
+    'dividend-income-planner',   # Max, Nov 8: too close to Blossom PRO
 }
