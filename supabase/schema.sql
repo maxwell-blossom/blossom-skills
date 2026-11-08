@@ -10,6 +10,9 @@ create table if not exists creators (
   followers     int default 0,
   photo_url     text,
   url           text,          -- the creator's profile on blossomsocial.com
+  following     int default 0,
+  stocks        int default 0,
+  portfolio     jsonb,         -- [{"t":"ZEQT","w":97.3}, …]
   payout_method text check (payout_method in ('etransfer','paypal')),
   payout_email  text,
   created_at    timestamptz default now()
@@ -108,6 +111,9 @@ group by 1, 2;
 
 -- Nov 8: profile link on creators + MCP waitlist
 alter table creators add column if not exists url text;
+alter table creators add column if not exists following int default 0;
+alter table creators add column if not exists stocks int default 0;
+alter table creators add column if not exists portfolio jsonb;   -- [{"t":"ZEQT","w":97.3}, …] allocation weights shown on the creator card
 create table if not exists waitlist (
   id         bigserial primary key,
   email      text not null,

@@ -51,9 +51,9 @@ function detail(id){
     <div class="rsum"><div><div class="big">${s.rating.toFixed(1)}</div><div>${stars(s.rating)}</div><div class="small">${s.ratings} ratings · ${fmtN(s.downloads)} downloads</div></div><div class="bars">${dist.map(([n,v])=>`<div><span>${n} ★</span><i><b style="width:${Math.round(v/tot*100)}%"></b></i><span>${Math.round(v/tot*100)}%</span></div>`).join('')}</div></div>
     <div class="compose">${avatar(ME,36)}<div style="flex:1"><textarea placeholder="Ran it? Say what it did for you…" disabled></textarea><div class="note">Ratings and comments open when V1 goes live. Only people who downloaded the skill can rate it.</div></div></div>
     <div style="margin-top:14px">${reviews}</div>`;
-  const cc = `<div class="card ccard">${avatar(s.creator,44)}<div><b>${esc(c?.name||s.creator)} ${badge(c)}</b><span>@${esc(s.creator)} · ${fmtN(c?.followers||0)} followers</span></div><a class="pill sec sm" href="/u/${s.creator}">Blossom profile</a></div>`;
+  const cc = creatorCard(s.creator);
   const reqs = '' && (s.requires||[]).length ? `<div class="card" style="padding:14px 16px"><b style="color:var(--ink);font-size:13.5px">Needs</b>${(s.requires||[]).map(r=>{const m=mcp(r);return m?`<div style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13.5px"><span>${m.emoji}</span><a href="/mcp/${m.id}">${esc(m.name)}</a><span class="small" style="margin-left:auto">${/^Free/.test(m.price)?'free':'from free'}</span></div>`:''}).join('')}</div>`:'';
-  return `<div class="wrap"><div class="small" style="margin-bottom:12px"><a href="/">Skills</a> › ${esc(s.cat)} › ${esc(s.name)}</div>
+  return `<div class="wrap">${pageHead(esc(s.name), `@${esc(s.creator)} · ${esc(s.cat)}`, isReal(s)?'/':'/examples')}
   <div class="detail"><div>
     <div class="card"><div class="dhead"><div class="em">${sIcon(s)}</div><div style="flex:1;min-width:0"><h1>${esc(s.name)}${s.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h1><div class="pitch">${esc(s.pitch)}</div><div class="by">${avatar(s.creator,24)} <b>${esc(c?.name||s.creator)}</b> @${esc(s.creator)} ${badge(c)}<button class="pill teal sm" id="follow" style="margin-left:6px">Follow</button></div>
       <div class="stats"><div><b>${fmtN(s.downloads)}</b>downloads</div><div><b>${stars(s.rating)} ${s.rating.toFixed(1)}</b>${s.ratings} ratings</div><div><b>v${s.version}</b>updated ${ago(s.updated)}</div><div><b>${esc(s.cadence.split(',')[0].slice(0,16))}</b>update cadence</div></div></div></div>
@@ -65,6 +65,23 @@ function detail(id){
 </div>
     ${cc}${reqs}
   </div></div></div>`;
+}
+// The Blossom app's profile card: avatar, name, handle, followers · following · stocks, the portfolio donut, Follow.
+function donut(port){
+  const COL=['#2EC4B6','#7361F7','#F7A541','#F25F7A','#4C8DF5','#9AA0A6'];
+  let segs=port.filter(x=>x&&x.w>0).map(x=>({t:String(x.t),w:+x.w})).sort((a,b)=>b.w-a.w);
+  const small=segs.filter(x=>x.w<3); if(small.length>1){ segs=segs.filter(x=>x.w>=3); segs.push({t:'Other', w:+small.reduce((a,x)=>a+x.w,0).toFixed(1)}); }
+  const tot=segs.reduce((a,x)=>a+x.w,0)||1; const R=54, C=2*Math.PI*R; let off=0;
+  const rings=segs.map((x,i)=>{ const len=C*x.w/tot; const el=`<circle r="${R}" cx="70" cy="70" fill="none" stroke="${COL[i%COL.length]}" stroke-width="16" stroke-dasharray="${len-2} ${C-len+2}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)"/>`; off+=len; return el; }).join('');
+  return `<div class="donut"><svg viewBox="0 0 140 140" width="150" height="150">${rings}</svg><div class="dc"><img src="data:image/svg+xml;base64,__BADGE__" alt=""><b>Verified</b><span>portfolio by Blossom</span></div></div>
+    <div class="dleg">${segs.slice(0,4).map((x,i)=>`<span><i style="background:${COL[i%COL.length]}"></i>${esc(x.t)} <b>${x.w.toFixed(1)}%</b></span>`).join('')}</div>`;
+}
+function creatorCard(h){
+  const c=creator(h); if(!c) return '';
+  const stats=[`${fmtN(c.followers||0)} Followers`, c.following?`${fmtN(c.following)} Following`:'', c.stocks?`${c.stocks} Stock${c.stocks===1?'':'s'}`:''].filter(Boolean).join(' • ');
+  return `<div class="card pcard2"><div class="pava">${avatar(h,64)}</div><div class="pname">${esc(c.name||h)} ${badge(c)}</div><div class="phandle">@${esc(h)}</div><div class="pstats">${stats}</div>
+    ${c.portfolio&&c.portfolio.length?donut(c.portfolio):''}
+    ${c.url?`<a class="pill pri lg" href="${esc(c.url)}" target="_blank" rel="noopener" style="width:100%;margin-top:14px;text-align:center">Follow on Blossom</a>`:''}</div>`;
 }
 function bindDetail(id){
   const s=skill(id); if(!s) return;
