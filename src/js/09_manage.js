@@ -18,7 +18,7 @@ function bindManage(id){
   const s=skill(id); if(!s) return; bindCopy();
   $('#pub').onclick=()=>{ const v=$('#ver').value.trim(), n=$('#note').value.trim(); if(!n){ toast('Say what changed'); return; }
     const local=()=>{ const m=mine(); const i=m.findIndex(x=>x.id===id); const today=new Date().toISOString().slice(0,10); if(i>=0){ m[i].log.unshift([v,today,n]); m[i].version=v; LS.set('mine',m); } else { s.log.unshift([v,today,n]); s.version=v; } toast('Update published · '+(s.price.free?'followers':'subscribers')+' notified'); route(); };
-    if(s.mine) post('update',{skill:id, creator:ME, version:v, note:n}).then(local).catch(err=>toast('Could not publish the update: '+err.message)); else local(); };
+    if(s.mine) post('update',{skill:id, creator:s.creator, version:v, note:n}).then(local).catch(err=>toast('Could not publish the update: '+err.message)); else local(); };
 }
 
 document.querySelectorAll('[data-app]').forEach(a=>a.addEventListener('click',e=>{ e.preventDefault(); toast('That’s the Blossom web app — this preview only has Skills & MCPs'); }));

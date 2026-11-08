@@ -1,6 +1,7 @@
 // POST {creator:{handle,name,email,payout_method,payout_email}, skill:{…}} → creates the creator if needed and the skill, live immediately (no review queue for now — Max, Nov 8).
 import { db, json, bad } from './_lib.mjs';
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48);
+const handleSlug = (s) => s.toLowerCase().replace(/^@/, '').replace(/[^a-z0-9._-]/g, '').slice(0, 32);   // Blossom handles keep dots and underscores (anthony.invests, tfsa_tina)
 export default async (req) => {
   if (req.method !== 'POST') return bad('POST only', 405);
   const body = await req.json().catch(() => ({}));
@@ -8,8 +9,12 @@ export default async (req) => {
   if (!c.handle || !k.name || !k.skill_md) return bad('creator.handle, skill.name and skill.skill_md are required');
   if (/sk_live|sk_test|api[_-]?key\s*[:=]\s*\S{12,}|ghp_[A-Za-z0-9]{20,}/i.test(k.skill_md)) return bad('The SKILL.md looks like it contains a secret. Remove it and try again.');
   const sb = db();
-  const handle = slug(c.handle);
-  await sb.from('creators').upsert({ handle, name: c.name || c.handle, email: c.email || null, payout_method: c.payout_method || null, payout_email: c.payout_email || null }, { onConflict: 'handle', ignoreDuplicates: false });
+  const handle = handleSlug(c.handle);
+  if (!handle) return bad('A Blossom handle is required');
+  const row = { handle, name: c.name || c.handle };
+  if (c.email) row.email = c.email;
+  if (c.payout_method && c.payout_email) { row.payout_method = c.payout_method; row.payout_email = c.payout_email; }
+  await sb.from('creators').upsert(row, { onConflict: 'handle', ignoreDuplicates: false });
   let id = slug(k.name) || 'skill';
   const { data: clash } = await sb.from('skills').select('id').eq('id', id).maybeSingle();
   if (clash) id = `${id}-${Math.random().toString(36).slice(2, 6)}`;

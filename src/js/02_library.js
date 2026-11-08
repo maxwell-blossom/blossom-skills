@@ -16,7 +16,7 @@ function mcpCard(m){
     <div class="top"><div class="em mcp">${mIcon(m,true)}</div><div style="min-width:0"><h3>${esc(m.name)} ${m.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h3><div class="by">${by}</div></div></div>
     <p>${esc(m.pitch)}</p>
     <ul class="hl">${m.tools.slice(0,3).map(([t,d])=>`<li><b style="font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--purple);font-weight:600">${esc(t)}</b> <span>${esc(d.split('.')[0])}</span></li>`).join('')}</ul><div class="req"><span class="chip rq">${m.tools.length} tools</span><span class="chip rq">${m.auth.split('·')[0].trim()}</span></div>
-    <div class="bot"><span>${fmtN(m.installs)} connected</span><span>${stars(m.rating)} <b style="color:var(--ink)">${m.rating.toFixed(1)}</b></span><span class="sp"></span><span class="price ${/^Free/.test(m.price)?'free':/PRO\+/.test(m.price)?'pro':''}">${esc(m.price.split('·')[0].trim().replace('Requires Blossom PRO+','PRO+'))}</span></div>
+    <div class="bot"><span class="l"><span>${fmtN(m.installs)} connected</span><span>${stars(m.rating)} <b style="color:var(--ink)">${m.rating.toFixed(1)}</b></span></span><span class="price ${/^Free/.test(m.price)?'free':/PRO\+/.test(m.price)?'pro':''}">${esc(m.price.split('·')[0].trim())}</span></div>
   </div>`;
 }
 function library(){

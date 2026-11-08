@@ -39,6 +39,8 @@ SIDEBAR = ('<aside class="sidebar">'
   f'<a href="#" data-app>{NAV["resources"]}Resources</a><div class="sub">Get Help</div>'
   f'<a href="#" data-app class="bottom" style="color:var(--muted)">{NAV["settings"]}Settings</a></aside>')
 for m in MCPS:
+    if m['id'] == 'fiscal-ai': m['price'] = '$65/mo · billed by Fiscal.ai'; m['signup'] = 'https://fiscal.ai/get-started/mcp/user-type/'   # Max, Nov 8
+    if m['id'] == 'blossom-connector': m['price'] = 'Free with PRO+ · included with Blossom PRO+'
     if m.get('creator') == 'blossom' and not m.get('logo'): m['logo'] = 'logo_blossom_flower_256.jpg'   # Blossom MCPs get the flower, like the partner logos
     if m.get('logo'): m['logo_b64'] = base64.b64encode(open(os.path.join(OUT, 'assets', m['logo']), 'rb').read()).decode()
 

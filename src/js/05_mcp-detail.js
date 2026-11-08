@@ -30,14 +30,14 @@ function mcpDetail(id){
       </div></div>
   </div>
   <div class="side"><div class="card buy"><div class="amt" style="font-size:22px">${esc(m.price.split('·')[0].trim())}</div><div class="sub">${esc(m.price.split('·').slice(1).join('·').trim()||(m.creator?'Read-only access to your own data':'Billed by Fiscal.ai'))}</div>
-    <button class="pill pri lg" id="connect">${m.creator?'Connect to Claude':(m.id==='fiscal-ai'?'Open on fiscal.ai':'Copy install command')}</button>
+    <button class="pill pri lg" id="connect">${m.creator?'Connect to Claude':(m.signup?'Get it on fiscal.ai':'Copy install command')}</button>
     <ul class="incl"><li>OAuth — no keys to paste</li><li>Revoke any time</li><li>${m.creator?'Never places trades, never sees your broker login':'Partner MCP · support via Fiscal.ai'}</li></ul></div></div></div></div>`;
 }
 function bindMcp(id){
   const m=mcp(id);
   document.querySelectorAll('[data-mtab]').forEach(b=>b.onclick=()=>{ state.itab=b.dataset.mtab; route(); });
   bindCopy();
-  $('#connect').onclick=()=>{ if(m.id==='fiscal-ai'){ window.open('https://docs.fiscal.ai/docs/guides/mcp-integration','_blank'); return; } if(!m.creator){ copy(m.url.split('  ')[0], 'Install command copied'); return; } copy(m.url, 'Connector URL copied — paste it in Claude → Settings → Connectors'); };
+  $('#connect').onclick=()=>{ if(m.signup){ window.open(m.signup,'_blank','noopener'); return; } if(!m.creator){ copy(m.url.split('  ')[0], 'Install command copied'); return; } copy(m.url, 'Connector URL copied — paste it in Claude → Settings → Connectors'); };
   document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',e=>{ if(e.target.closest('a,button')) return; go(el.dataset.go); }));
 }
 

@@ -58,7 +58,7 @@ const $ = (s, el=document) => el.querySelector(s);
 const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmtN = n => n >= 1000 ? (n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'')+'K' : String(n);
 const money = v => '$' + (Number.isInteger(v) ? v : v.toFixed(2));
-const ago = d => { const days = Math.round((new Date() - new Date(d))/86400000); return days<=0?'today':days===1?'1 day ago':days<30?days+' days ago':Math.round(days/30)+' mo ago'; };
+const ago = d => { const days = Math.floor((new Date() - new Date(d))/86400000); return days<=0?'today':days===1?'1 day ago':days<30?days+' days ago':Math.round(days/30)+' mo ago'; };
 const LS = { get:(k,d)=>{try{return JSON.parse(localStorage.getItem('bs_'+k))??d}catch(e){return d}}, set:(k,v)=>{try{localStorage.setItem('bs_'+k,JSON.stringify(v))}catch(e){}} };
 let state = { tab:'skills', cat:'All', sort:'top', q:'', dtab:'overview', itab:'claude', plan:null, wiz:null };
 const mine = () => LS.get('mine', []);
@@ -87,7 +87,10 @@ function sIcon(s){ return s.icon?`<img src="${s.icon}" alt="" style="width:100%;
 // MCP icon: a partner logo when one is set, else the emoji. `tile` = the big square on cards/detail; otherwise inline.
 function mIcon(m, tile){ if(!m.logo_b64) return m.emoji; return tile ? `<img src="data:image/png;base64,${m.logo_b64}" alt="${esc(m.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">` : `<img src="data:image/png;base64,${m.logo_b64}" alt="" style="width:1em;height:1em;border-radius:3px;vertical-align:-2px">`; }
 const SHORT={'blossom-connector':'Connector','blossom-trade-data':'Trade Data','fiscal-ai':'Fiscal.ai','public-mcp':'Public.com','questrade-mcp':'Questrade','robinhood-mcp':'Robinhood','webull-mcp':'Webull','moomoo-mcp':'moomoo','ibkr-mcp':'IBKR','alpaca-mcp':'Alpaca','schwab-mcp':'Schwab','tradier-mcp':'Tradier'};
-function reqChips(s){ return (s.requires||[]).map(r=>{const m=mcp(r); return m?`<span class="chip rq" title="${esc(m.name)}">${mIcon(m)} ${SHORT[r]||esc(m.name)}</span>`:''}).join('') + (s.optional||[]).map(r=>{const m=mcp(r); return m?`<span class="chip rq opt" title="Supported: ${esc(m.name)}">${mIcon(m)} ${SHORT[r]||esc(m.name)} <i>supported</i></span>`:''}).join(''); }
+function reqChips(s){ const opt=(s.optional||[]).filter(r=>mcp(r)); const shown=opt.slice(0,3), more=opt.length-shown.length;
+  return (s.requires||[]).map(r=>{const m=mcp(r); return m?`<span class="chip rq" title="${esc(m.name)}">${mIcon(m)} ${SHORT[r]||esc(m.name)}</span>`:''}).join('')
+    + shown.map(r=>{const m=mcp(r); return `<span class="chip rq opt" title="Supported: ${esc(m.name)}">${mIcon(m)} ${SHORT[r]||esc(m.name)} <i>supported</i></span>`}).join('')
+    + (more>0?`<span class="chip rq opt" title="${esc(opt.slice(3).map(r=>mcp(r).name).join(', '))}">+${more} more</span>`:''); }
 
 // tiny markdown: bold, inline code, tables, code blocks, lists, links
 function md(src){
