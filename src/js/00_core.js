@@ -47,8 +47,8 @@ async function downloadSkill(s){
   else if(s.price.free){ const r=await fetch(API+'download?skill='+encodeURIComponent(s.id)); if(!r.ok){ toast(await r.text()); return; } text=await r.text(); }
   else { const t=tokens()[s.id]; if(!t){ toast('Buy the skill or restore access first'); return; }
     const r=await fetch(API+'download?skill='+encodeURIComponent(s.id)+'&token='+encodeURIComponent(t)); if(!r.ok){ toast(await r.text()); return; } text=await r.text(); }
-  const blob=new Blob([text],{type:'text/markdown'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='SKILL.md'; a.click();
-  const d=LS.get('dl',{}); d[s.id]=(d[s.id]||0)+1; LS.set('dl',d); toast('Downloaded SKILL.md — put it in a folder named '+s.id);
+  const blob=new Blob([text],{type:'text/markdown'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=s.id+'-SKILL.md'; a.click();
+  const d=LS.get('dl',{}); d[s.id]=(d[s.id]||0)+1; LS.set('dl',d); toast('Downloaded — drop it into Claude and say “save this as a skill”');
 }
 function restoreAccess(){
   askEmail('Restore access', 'Find my purchases', async(e)=>{ const j=await post('restore',{email:e}); if(!j.owned.length) throw new Error('No active purchases for '+e); const t=tokens(), o=owned(); j.owned.forEach(x=>{ t[x.skill]=x.token; o[x.skill]=x.plan; }); LS.set('tokens',t); LS.set('owned',o); toast('Restored '+j.owned.length+' skill'+(j.owned.length===1?'':'s')); route(); });
@@ -90,7 +90,7 @@ function priceLabel(p){ if(p.free) return {t:'Free',cls:'free'}; if(p.monthly) r
 function sIcon(s){ return s.icon?`<img src="${s.icon}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:s.emoji; }
 // MCP icon: a partner logo when one is set, else the emoji. `tile` = the big square on cards/detail; otherwise inline.
 function mIcon(m, tile){ if(!m.logo_b64) return m.emoji; return tile ? `<img src="data:image/png;base64,${m.logo_b64}" alt="${esc(m.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">` : `<img src="data:image/png;base64,${m.logo_b64}" alt="" style="width:1em;height:1em;border-radius:3px;vertical-align:-2px">`; }
-const SHORT={'blossom-connector':'Connector','blossom-trade-data':'Trade Data','fiscal-ai':'Fiscal.ai','public-mcp':'Public.com','questrade-mcp':'Questrade','robinhood-mcp':'Robinhood','webull-mcp':'Webull','moomoo-mcp':'moomoo','ibkr-mcp':'IBKR','alpaca-mcp':'Alpaca','schwab-mcp':'Schwab','tradier-mcp':'Tradier'};
+const SHORT={'blossom-connector':'Connector','blossom-trade-data':'Trade Data','fiscal-ai':'Fiscal.ai','public-mcp':'Public.com MCP','questrade-mcp':'Questrade MCP','robinhood-mcp':'Robinhood MCP','webull-mcp':'Webull MCP','moomoo-mcp':'moomoo MCP','ibkr-mcp':'IBKR MCP','alpaca-mcp':'Alpaca MCP','schwab-mcp':'Schwab MCP','tradier-mcp':'Tradier MCP'};
 function reqChips(s){ const opt=(s.optional||[]).filter(r=>mcp(r)); const shown=opt.slice(0,3), more=opt.length-shown.length;
   return (s.requires||[]).map(r=>{const m=mcp(r); return m?`<span class="chip rq" title="${esc(m.name)}">${mIcon(m)} ${SHORT[r]||esc(m.name)}</span>`:''}).join('')
     + shown.map(r=>{const m=mcp(r); return `<span class="chip rq opt" title="Supported: ${esc(m.name)}">${mIcon(m)} ${SHORT[r]||esc(m.name)} <i>supported</i></span>`}).join('')
