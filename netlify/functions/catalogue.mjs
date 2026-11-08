@@ -6,7 +6,7 @@ export default async () => {
   const sb = db();
   const [{ data: skills, error: e1 }, { data: creators, error: e2 }, { data: updates, error: e3 }] = await Promise.all([
     sb.from('skills').select('id,creator,name,emoji,icon_url,cat,pitch,highlights,requires,optional,trades,price,cadence,prompts,sample,shots,skill_md,status,downloads,rating,ratings,version,updated_at').eq('status', 'live').order('downloads', { ascending: false }),
-    sb.from('creators').select('handle,name,badge,bio,followers,photo_url'),
+    sb.from('creators').select('handle,name,badge,bio,followers,photo_url,url'),
     sb.from('skill_updates').select('skill_id,version,note,created_at').order('created_at', { ascending: false }),
   ]);
   if (e1 || e2 || e3) return json({ error: (e1 || e2 || e3).message }, 500);

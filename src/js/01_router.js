@@ -14,6 +14,7 @@ function route(){
   const app = $('#app');
   if(parts[0]==='' ){ state.tab='skills'; app.innerHTML=library(); bindLibrary(); }
   else if(parts[0]==='terms'){ app.innerHTML=terms(); }
+  else if(parts[0]==='examples'){ state.tab='examples'; app.innerHTML=library(); bindLibrary(); }
   else if(parts[0]==='mcps'){ state.tab='mcps'; app.innerHTML=library(); bindLibrary(); }
   else if(parts[0]==='learn'){ state.tab='learn'; app.innerHTML=library(); bindLibrary(); }
   else if(parts[0]==='skill'){ app.innerHTML=detail(parts[1]); bindDetail(parts[1]); }
@@ -25,6 +26,7 @@ function route(){
   else { app.innerHTML=library(); bindLibrary(); }
 }
 window.addEventListener('popstate', route);
+document.addEventListener('click', e => { const b = e.target.closest('a.pback'); if(!b) return; e.preventDefault(); if(window.__navd && history.length > 1) history.back(); else go(b.getAttribute('href')); });
 // Same-origin links navigate in-app (no reload); new-tab/modified clicks and external links are left alone.
 document.addEventListener('click', e => { const a = e.target.closest('a[href]'); if(!a || a.target || a.hasAttribute('download') || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; const u = new URL(a.href, location.href); if(u.origin !== location.origin || !u.pathname.startsWith(BASE + '/')) return; if(a.getAttribute('href') === '#') { e.preventDefault(); return; } e.preventDefault(); go(u.pathname.slice(BASE.length) + u.search); });
 

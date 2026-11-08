@@ -12,6 +12,7 @@ export default async (req) => {
   const handle = handleSlug(c.handle);
   if (!handle) return bad('A Blossom handle is required');
   const row = { handle, name: c.name || c.handle };
+  if (typeof c.url === 'string' && /^https:\/\/(www\.)?blossomsocial\.com\/\S+$/.test(c.url.trim())) row.url = c.url.trim().slice(0, 200);
   if (c.email) row.email = c.email;
   if (c.payout_method && c.payout_email) { row.payout_method = c.payout_method; row.payout_email = c.payout_email; }
   await sb.from('creators').upsert(row, { onConflict: 'handle', ignoreDuplicates: false });

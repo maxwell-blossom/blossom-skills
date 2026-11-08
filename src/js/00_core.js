@@ -1,13 +1,13 @@
 const D = __DATA__;
 const BASE = D.base || '';   // '' on blossom-skills.netlify.app; '/skillsandmcps' once it lives on blossomsocial.com
-function go(path){ history.pushState(null, '', BASE + path); route(); }
+function go(path){ history.pushState(null, '', BASE + path); window.__navd=true; route(); }
 D.remote = [];   // skills published through the site and approved (status=live in Supabase); loaded by loadCatalogue()
 const shotUrl = f => /^https?:|^data:/.test(f) ? f : 'shots/' + f;
 async function loadCatalogue(){
   try {
     const j = await api('catalogue');
     const have = new Set(D.skills.map(s=>s.id));
-    (j.creators||[]).forEach(c=>{ if(!D.creators[c.handle]) D.creators[c.handle] = {handle:c.handle, name:c.name, badge:c.badge, bio:c.bio||'', followers:c.followers||0, photo_url:c.photo_url, color:'#7361F7', initials:(c.name||c.handle).slice(0,1).toUpperCase()}; });
+    (j.creators||[]).forEach(c=>{ if(!D.creators[c.handle]) D.creators[c.handle] = {handle:c.handle, name:c.name, badge:c.badge, bio:c.bio||'', followers:c.followers||0, photo_url:c.photo_url, url:c.url||null, color:'#7361F7', initials:(c.name||c.handle).slice(0,1).toUpperCase()}; });
     const logs = {}; (j.updates||[]).forEach(u=>{ (logs[u.skill_id]=logs[u.skill_id]||[]).push([u.version, (u.created_at||'').slice(0,10), u.note]); });
     D.remote = (j.skills||[]).filter(s=>!have.has(s.id)).map(s=>({ id:s.id, creator:s.creator, name:s.name, emoji:s.emoji||'🧾', icon:s.icon_url||null, cat:s.cat||'Portfolio', pitch:s.pitch||'', highlights:s.highlights||[], requires:s.requires||[], optional:s.optional||[], trades:!!s.trades, price:s.price||{free:true}, cadence:s.cadence||'Monthly', prompts:(s.prompts||[]).length?s.prompts:['Run '+s.name], sample:s.sample||'', shots:s.shots||[], skill:s.skill_md||'', status:'live', downloads:s.downloads||0, rating:+s.rating||0, ratings:s.ratings||0, version:s.version||'1.0.0', updated:(s.updated_at||'').slice(0,10), log:logs[s.id]||[['1.0.0',(s.updated_at||'').slice(0,10),'Initial release']], reviews:[], remote:true }));
     D.loaded = true; route();
@@ -21,6 +21,7 @@ const IC = {
   check: I('<path d="M20 6L9 17l-5-5"/>'), chat: I('<path d="M21 12a8 8 0 0 1-8 8H6l-3 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/>'), sparkle: I('<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 17l.8 2.2L22 20l-2.2.8L19 23l-.8-2.2L16 20l2.2-.8z"/>'),
   plug: I('<path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4"/>'), plus: I('<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>'), gear: I('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>'),
   file: I('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>'), wrench: I('<path d="M14.7 6.3a4 4 0 0 0 5 5l-9.4 9.4a2.1 2.1 0 0 1-3-3l9.4-9.4z"/><path d="M14.7 6.3L17 4l3 3-2.3 2.3"/>'), lock: I('<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'),
+  back: I('<path d="M15 18l-6-6 6-6"/>'),
   puzzle: I('<path d="M10 3h4v3a2 2 0 1 0 4 0h3v4h-3a2 2 0 1 0 0 4h3v4h-3a2 2 0 1 0-4 0v3h-4v-3a2 2 0 1 0-4 0H3v-4h3a2 2 0 1 0 0-4H3V6h3a2 2 0 1 0 4 0z"/>'), refresh: I('<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/>'), x: I('<path d="M18 6L6 18M6 6l12 12"/>'), circle: I('<circle cx="12" cy="12" r="8"/>'),
 };
 // ---- Backend: Netlify functions in front of Supabase + Stripe Checkout (see netlify/functions/).
@@ -69,6 +70,9 @@ const listedMcps = () => D.mcps.filter(m=>!m.compat);   // broker MCPs (compat:t
 const creator = h => D.creators[h];
 const owned = () => LS.get('owned', {});
 
+// Page header in the Blossom app style: round back button on the left, title (and a line under it) centred.
+function pageHead(title, sub, back){ return `<div class="phead"><a class="pback" href="${back}" aria-label="Back">${IC.back}</a><div class="pt"><b>${title}</b>${sub?`<span>${sub}</span>`:''}</div><span class="pback" style="visibility:hidden"></span></div>`; }
+const isReal = s => !!(s.remote || s.mine);   // published through the site, as opposed to the seeded examples
 function toast(t){ document.querySelectorAll('.toast').forEach(x=>x.remove()); const el=document.createElement('div'); el.className='toast'; el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),2200); }
 function copy(t, msg='Copied'){ navigator.clipboard?.writeText(t).then(()=>toast(msg),()=>toast(msg)); }
 function avatar(h, size=28){

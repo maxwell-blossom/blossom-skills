@@ -9,6 +9,7 @@ create table if not exists creators (
   bio           text,
   followers     int default 0,
   photo_url     text,
+  url           text,          -- the creator's profile on blossomsocial.com
   payout_method text check (payout_method in ('etransfer','paypal')),
   payout_email  text,
   created_at    timestamptz default now()
@@ -104,3 +105,14 @@ select s.creator, to_char(p.created_at, 'YYYY-MM') as period,
 from purchases p join skills s on s.id = p.skill_id
 where p.status in ('active','canceled') and p.created_at < now() - interval '14 days'
 group by 1, 2;
+
+-- Nov 8: profile link on creators + MCP waitlist
+alter table creators add column if not exists url text;
+create table if not exists waitlist (
+  id         bigserial primary key,
+  email      text not null,
+  mcp        text not null,
+  created_at timestamptz default now(),
+  unique (email, mcp)
+);
+alter table waitlist enable row level security;
