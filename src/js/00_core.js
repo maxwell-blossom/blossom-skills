@@ -1,4 +1,16 @@
 const D = __DATA__;
+D.remote = [];   // skills published through the site and approved (status=live in Supabase); loaded by loadCatalogue()
+const shotUrl = f => /^https?:|^data:/.test(f) ? f : 'shots/' + f;
+async function loadCatalogue(){
+  try {
+    const j = await api('catalogue');
+    const have = new Set(D.skills.map(s=>s.id));
+    (j.creators||[]).forEach(c=>{ if(!D.creators[c.handle]) D.creators[c.handle] = {handle:c.handle, name:c.name, badge:c.badge, bio:c.bio||'', followers:c.followers||0, photo_url:c.photo_url, color:'#7361F7', initials:(c.name||c.handle).slice(0,1).toUpperCase()}; });
+    const logs = {}; (j.updates||[]).forEach(u=>{ (logs[u.skill_id]=logs[u.skill_id]||[]).push([u.version, (u.created_at||'').slice(0,10), u.note]); });
+    D.remote = (j.skills||[]).filter(s=>!have.has(s.id)).map(s=>({ id:s.id, creator:s.creator, name:s.name, emoji:s.emoji||'🧾', icon:s.icon_url||null, cat:s.cat||'Portfolio', pitch:s.pitch||'', highlights:s.highlights||[], requires:s.requires||[], optional:s.optional||[], trades:!!s.trades, price:s.price||{free:true}, cadence:s.cadence||'Monthly', prompts:(s.prompts||[]).length?s.prompts:['Run '+s.name], sample:s.sample||'', shots:s.shots||[], skill:s.skill_md||'', status:'live', downloads:s.downloads||0, rating:+s.rating||0, ratings:s.ratings||0, version:s.version||'1.0.0', updated:(s.updated_at||'').slice(0,10), log:logs[s.id]||[['1.0.0',(s.updated_at||'').slice(0,10),'Initial release']], reviews:[], remote:true }));
+    if(D.remote.length) route();
+  } catch(e) { console.warn('catalogue', e.message); }
+}
 const BROKERS = __BROKERS__;
 function brokerStrip(note){ return `<div class="brokers"><div class="bl">${BROKERS.map(([n,b])=>`<img src="data:image/png;base64,${b}" alt="${n}" title="${n}">`).join('')}<span class="more">+ 14 more</span></div><div class="small">${note}</div></div>`; }
 const SITE = D.site;
@@ -28,7 +40,8 @@ function askEmail(title, cta, onGo){
 // Download: free skills come from the page, paid ones from the download function with the buyer's token.
 async function downloadSkill(s){
   let text;
-  if(s.price.free){ text=s.skill+'\n'; }
+  if(s.price.free && s.skill && !s.remote){ text=s.skill+'\n'; }
+  else if(s.price.free){ const r=await fetch(API+'download?skill='+encodeURIComponent(s.id)); if(!r.ok){ toast(await r.text()); return; } text=await r.text(); }
   else { const t=tokens()[s.id]; if(!t){ toast('Buy the skill or restore access first'); return; }
     const r=await fetch(API+'download?skill='+encodeURIComponent(s.id)+'&token='+encodeURIComponent(t)); if(!r.ok){ toast(await r.text()); return; } text=await r.text(); }
   const blob=new Blob([text],{type:'text/markdown'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='SKILL.md'; a.click();
@@ -43,11 +56,11 @@ const $ = (s, el=document) => el.querySelector(s);
 const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmtN = n => n >= 1000 ? (n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'')+'K' : String(n);
 const money = v => '$' + (Number.isInteger(v) ? v : v.toFixed(2));
-const ago = d => { const days = Math.round((new Date('2026-11-07') - new Date(d))/86400000); return days<=0?'today':days===1?'1 day ago':days<30?days+' days ago':Math.round(days/30)+' mo ago'; };
+const ago = d => { const days = Math.round((new Date() - new Date(d))/86400000); return days<=0?'today':days===1?'1 day ago':days<30?days+' days ago':Math.round(days/30)+' mo ago'; };
 const LS = { get:(k,d)=>{try{return JSON.parse(localStorage.getItem('bs_'+k))??d}catch(e){return d}}, set:(k,v)=>{try{localStorage.setItem('bs_'+k,JSON.stringify(v))}catch(e){}} };
 let state = { tab:'skills', cat:'All', sort:'top', q:'', dtab:'overview', itab:'claude', plan:null, wiz:null };
 const mine = () => LS.get('mine', []);
-const allSkills = () => D.skills.concat(mine());
+const allSkills = () => { const r=D.remote||[]; const ids=new Set(r.map(s=>s.id)); return D.skills.concat(r).concat(mine().filter(s=>!ids.has(s.id))); };
 const skill = id => allSkills().find(s=>s.id===id);
 const mcp = id => D.mcps.find(m=>m.id===id);
 const listedMcps = () => D.mcps.filter(m=>!m.compat);   // broker MCPs (compat:true) aren't listed; skills can still say they're compatible with them
@@ -59,6 +72,7 @@ function copy(t, msg='Copied'){ navigator.clipboard?.writeText(t).then(()=>toast
 function avatar(h, size=28){
   const c = creator(h); if(!c) return `<span class="ava" style="width:${size}px;height:${size}px;background:#ddd"></span>`;
   if (c.beevis) return `<span class="ava" style="width:${size}px;height:${size}px"><img src="data:image/svg+xml;base64,__BEEVIS__" alt=""></span>`;
+  if (c.photo_url) return `<span class="ava" style="width:${size}px;height:${size}px;border:1px solid var(--border);background:#fff"><img src="${esc(c.photo_url)}" alt=""></span>`;
   if (c.photo_b64) return `<span class="ava" style="width:${size}px;height:${size}px;border:1px solid var(--border);background:#fff"><img src="data:image/jpeg;base64,${c.photo_b64}" alt=""></span>`;
   if (c.logo) return `<span class="ava" style="width:${size}px;height:${size}px;background:#fff;border:1px solid var(--border)"><img src="data:image/jpeg;base64,__FLOWER__" alt="" style="width:70%;height:70%"></span>`;
   return `<span class="ava" style="width:${size}px;height:${size}px;background:${c.color};font-size:${Math.round(size*.38)}px">${c.initials}</span>`;
@@ -71,7 +85,7 @@ function sIcon(s){ return s.icon?`<img src="${s.icon}" alt="" style="width:100%;
 // MCP icon: a partner logo when one is set, else the emoji. `tile` = the big square on cards/detail; otherwise inline.
 function mIcon(m, tile){ if(!m.logo_b64) return m.emoji; return tile ? `<img src="data:image/png;base64,${m.logo_b64}" alt="${esc(m.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">` : `<img src="data:image/png;base64,${m.logo_b64}" alt="" style="width:1em;height:1em;border-radius:3px;vertical-align:-2px">`; }
 const SHORT={'blossom-connector':'Connector','blossom-trade-data':'Trade Data','fiscal-ai':'Fiscal.ai','public-mcp':'Public.com','questrade-mcp':'Questrade','robinhood-mcp':'Robinhood','webull-mcp':'Webull','moomoo-mcp':'moomoo','ibkr-mcp':'IBKR','alpaca-mcp':'Alpaca','schwab-mcp':'Schwab','tradier-mcp':'Tradier'};
-function reqChips(s){ return (s.requires||[]).map(r=>{const m=mcp(r); return m?`<span class="chip rq" title="${esc(m.name)}">${mIcon(m)} ${SHORT[r]||esc(m.name)}</span>`:''}).join('') + (s.optional||[]).map(r=>{const m=mcp(r); return m?`<span class="chip rq opt" title="Optional: ${esc(m.name)}">${mIcon(m)} ${SHORT[r]||esc(m.name)} <i>optional</i></span>`:''}).join(''); }
+function reqChips(s){ return (s.requires||[]).map(r=>{const m=mcp(r); return m?`<span class="chip rq" title="${esc(m.name)}">${mIcon(m)} ${SHORT[r]||esc(m.name)}</span>`:''}).join('') + (s.optional||[]).map(r=>{const m=mcp(r); return m?`<span class="chip rq opt" title="Supported: ${esc(m.name)}">${mIcon(m)} ${SHORT[r]||esc(m.name)} <i>supported</i></span>`:''}).join(''); }
 
 // tiny markdown: bold, inline code, tables, code blocks, lists, links
 function md(src){

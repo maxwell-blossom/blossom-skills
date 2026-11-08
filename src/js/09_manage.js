@@ -23,3 +23,4 @@ function bindManage(id){
 
 document.querySelectorAll('[data-app]').forEach(a=>a.addEventListener('click',e=>{ e.preventDefault(); toast('That’s the Blossom web app — this preview only has Skills & MCPs'); }));
 route();
+loadCatalogue();

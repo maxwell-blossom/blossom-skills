@@ -4,6 +4,8 @@ Run once in Supabase → SQL Editor after schema.sql, or re-run after editing da
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import data
+from hidden import HIDDEN
+data.SKILLS = [s for s in data.SKILLS if s['id'] not in HIDDEN]
 
 SITE = os.environ.get('SITE_URL', 'https://blossom-skills.netlify.app')
 

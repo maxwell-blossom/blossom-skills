@@ -2,6 +2,8 @@
 """Builds Blossom Skills V1: index.html (single page app) + skills/<slug>/SKILL.md files for the curl install."""
 import json, base64, os, re
 from data import CREATORS, MCPS, SKILLS
+from hidden import HIDDEN
+SKILLS = [s for s in SKILLS if s['id'] not in HIDDEN]
 
 OUT = os.path.dirname(os.path.abspath(__file__))
 SITE = 'https://blossom-skills.netlify.app'
@@ -47,6 +49,7 @@ def preview(md):
     keep = '\n'.join(body[:8])
     return head + '\n---\n' + keep + '\n\n… the full SKILL.md (' + str(len(md.splitlines())) + ' lines) unlocks after purchase.'
 SKILLS_OUT = []
+os.makedirs(os.path.join(OUT, 'skills'), exist_ok=True)
 for s in SKILLS:
     if s['price'].get('free'):
         d = os.path.join(OUT, 'skills', s['id']); os.makedirs(d, exist_ok=True)

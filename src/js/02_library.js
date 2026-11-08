@@ -4,7 +4,7 @@ function skillCard(s){
   return `<div class="card sk" data-go="#/skill/${s.id}">
     <div class="top"><div class="em">${sIcon(s)}</div><div style="min-width:0"><h3>${esc(s.name)}${s.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h3><div class="by">${avatar(s.creator,20)} <b>@${esc(s.creator)}</b> ${badge(c)}</div></div></div>
     <p>${esc(s.pitch)}</p>
-    ${(s.shots||[]).length?`<img class="shot" src="shots/${s.shots[0][0]}" alt="" loading="lazy">`:''}
+    ${(s.shots||[]).length?`<img class="shot" src="${shotUrl(s.shots[0][0])}" alt="" loading="lazy">`:''}
     ${(s.highlights||[]).length?`<ul class="hl">${s.highlights.slice(0,3).map(h=>`<li>${esc(h)}</li>`).join('')}</ul>`:''}
     <div class="req">${reqChips(s)}</div>
     <div class="bot"><span>${fmtN(s.downloads)} downloads</span><span>${s.ratings?`${stars(s.rating)} <b style="color:var(--ink)">${s.rating.toFixed(1)}</b> <span style="color:var(--muted)">(${s.ratings})</span>`:'No ratings yet'}</span><span class="upd">v${s.version} · updated ${ago(s.updated)}${(s.shots||[]).length?` · ${s.shots.length} screenshot${s.shots.length===1?'':'s'}`:''}</span><span class="sp"></span><span class="price ${p.cls}">${p.t}</span></div>
@@ -30,11 +30,10 @@ function library(){
       <h1>🤖 The Best Skills and MCPs for&nbsp;Investors</h1>
       <p>Discover and download skills built by Blossom investors for Claude, ChatGPT, Grok and Cursor to supercharge your investing.</p>
       <div class="search"><span style="color:var(--muted)">🔍</span><input id="q" placeholder="Search skills, creators, tickers… try “dividends”" value="${esc(state.q)}"><button class="pill pri sm" id="qgo">Search</button></div>
-      <div class="stats"><div><b>${allSkills().length}</b><span>skills</span></div><div><b>${listedMcps().length}</b><span>MCPs</span></div><div><b>${fmtN(totalDl)}</b><span>downloads</span></div><div><b>${Object.keys(D.creators).length}</b><span>creators</span></div></div>
     </div>
     <div class="side">
       <div class="stack">${['maxstocks','dividendsdan','tfsa_tina','northofthe49','quantqueen','earningsedge'].map(h=>avatar(h,48)).join('')}</div>
-      <div class="t">Built by verified investors on Blossom<span>${Object.keys(D.creators).length} creators · ${fmtN(totalDl)} downloads</span></div>
+      <div class="t">Built by verified investors on Blossom</div>
     </div></div>`;
   const tabs = `<div class="tabs"><button class="${state.tab==='skills'?'on':''}" data-tab="skills">Skills<span class="n">${allSkills().length}</span></button><button class="${state.tab==='mcps'?'on':''}" data-tab="mcps">MCPs<span class="n">${listedMcps().length}</span></button><span class="sp" style="flex:1"></span><a class="pill pri sm" href="#/post" style="align-self:center">+ Post a skill</a></div>`;
   let body='';

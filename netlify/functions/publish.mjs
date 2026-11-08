@@ -1,4 +1,4 @@
-// POST {creator:{handle,name,email,payout_method,payout_email}, skill:{…}} → creates the creator if needed and the skill in 'review'.
+// POST {creator:{handle,name,email,payout_method,payout_email}, skill:{…}} → creates the creator if needed and the skill, live immediately (no review queue for now — Max, Nov 8).
 import { db, json, bad } from './_lib.mjs';
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48);
 export default async (req) => {
@@ -17,9 +17,9 @@ export default async (req) => {
   const { error } = await sb.from('skills').insert({
     id, creator: handle, name: k.name, emoji: k.emoji || '🧾', icon_url: k.icon_url || null, cat: k.cat || 'Portfolio', pitch: k.pitch || '',
     highlights: k.highlights || [], requires: k.requires || [], optional: k.optional || [], trades: !!k.trades, price, cadence: k.cadence || 'Monthly',
-    prompts: k.prompts || [], sample: k.sample || '', shots: k.shots || [], skill_md: k.skill_md, status: 'review', version: '1.0.0',
+    prompts: k.prompts || [], sample: k.sample || '', shots: k.shots || [], skill_md: k.skill_md, status: 'live', version: '1.0.0',
   });
   if (error) return bad(error.message, 500);
   await sb.from('skill_updates').insert({ skill_id: id, version: '1.0.0', note: k.first || 'Initial release' });
-  return json({ id, status: 'review' });
+  return json({ id, status: 'live' });
 };
