@@ -38,7 +38,7 @@ function library(){
   const tabs = `<div class="tabs"><button class="${state.tab==='skills'?'on':''}" data-tab="skills">Skills<span class="n">${allSkills().length}</span></button><button class="${state.tab==='mcps'?'on':''}" data-tab="mcps">MCPs<span class="n">${listedMcps().length}</span></button><button class="${state.tab==='learn'?'on':''}" data-tab="learn">How it works</button><span class="sp" style="flex:1"></span><a class="pill pri sm" href="/post" style="align-self:center">+ Post a skill</a></div>`;
   let body='';
   if(state.tab==='skills'){
-    body = `<div class="filters"><button class="chip ${state.cat==='All'?'on':''}" data-cat="All">All</button>${D.mcps.map(m=>`<button class="chip ${state.cat===m.id?'on':''}" data-cat="${m.id}" title="Skills that use ${esc(m.name)}">${mIcon(m)} ${SHORT[m.id]||esc(m.name)}</button>`).join('')}<span class="sp"></span><select id="sort"><option value="top" ${state.sort==='top'?'selected':''}>Top rated</option><option value="dl" ${state.sort==='dl'?'selected':''}>Most downloaded</option><option value="new" ${state.sort==='new'?'selected':''}>Recently updated</option><option value="price" ${state.sort==='price'?'selected':''}>Price: low to high</option><option value="pricehi" ${state.sort==='pricehi'?'selected':''}>Price: high to low</option></select></div>
+    body = `<div class="filters"><label class="fsel"><span>Works with</span><select id="mcpf"><option value="All" ${state.cat==='All'?'selected':''}>Any MCP</option>${D.mcps.map(m=>`<option value="${m.id}" ${state.cat===m.id?'selected':''}>${esc(m.name)}</option>`).join('')}</select></label><span class="small" style="margin-left:4px">${list.length} skill${list.length===1?'':'s'}</span><span class="sp"></span><label class="fsel"><span>Sort</span><select id="sort"><option value="top" ${state.sort==='top'?'selected':''}>Top rated</option><option value="dl" ${state.sort==='dl'?'selected':''}>Most downloaded</option><option value="new" ${state.sort==='new'?'selected':''}>Recently updated</option><option value="price" ${state.sort==='price'?'selected':''}>Price: low to high</option><option value="pricehi" ${state.sort==='pricehi'?'selected':''}>Price: high to low</option></select></label></div>
       <div class="grid">${list.map(skillCard).join('')||'<div class="empty">Nothing matches that yet. <a href="/post">Post the first one →</a></div>'}</div>`;
   } else if(state.tab==='learn'){
     body = '';   // the How-it-works section is static HTML below #app (see build.py LEARN) so crawlers get it without JS
@@ -51,7 +51,7 @@ function library(){
 function bindLibrary(){
   document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',e=>{ if(e.target.closest('a,button')) return; go(el.dataset.go); }));
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ go(b.dataset.tab==='mcps'?'/mcps':b.dataset.tab==='learn'?'/learn':'/'); });
-  document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{ state.cat=b.dataset.cat; route(); });
+  const mf=$('#mcpf'); if(mf) mf.onchange=()=>{ state.cat=mf.value; route(); };
   const so=$('#sort'); if(so) so.onchange=()=>{ state.sort=so.value; route(); };
   const q=$('#q'); if(q){ const doSearch=()=>{ state.q=q.value; route(); const nq=$('#q'); if(nq){nq.focus(); nq.setSelectionRange(nq.value.length,nq.value.length);} }; q.addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(); }); $('#qgo').onclick=doSearch; }
 }
