@@ -9,7 +9,8 @@ export default async (req) => {
   const cents = planPrice(s.price, plan);
   if (!cents) return bad('That plan is not offered for this skill');
   const recurring = plan === 'monthly' ? { interval: 'month' } : plan === 'yearly' ? { interval: 'year' } : null;
-  const session = await stripe().checkout.sessions.create({
+  let st; try { st = stripe(); } catch (e) { return bad('Checkout is not set up yet (Stripe key missing). Try again later.', 503); }
+  const session = await st.checkout.sessions.create({
     mode: recurring ? 'subscription' : 'payment',
     customer_email: email,
     client_reference_id: `${s.id}:${plan}`,

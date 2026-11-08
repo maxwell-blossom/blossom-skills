@@ -1,0 +1,57 @@
+// ---------- library
+function skillCard(s){
+  const c=creator(s.creator); const p=priceLabel(s.price);
+  return `<div class="card sk" data-go="#/skill/${s.id}">
+    <div class="top"><div class="em">${sIcon(s)}</div><div style="min-width:0"><h3>${esc(s.name)}${s.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h3><div class="by">${avatar(s.creator,20)} <b>@${esc(s.creator)}</b> ${badge(c)}</div></div></div>
+    <p>${esc(s.pitch)}</p>
+    ${(s.shots||[]).length?`<img class="shot" src="shots/${s.shots[0][0]}" alt="" loading="lazy">`:''}
+    ${(s.highlights||[]).length?`<ul class="hl">${s.highlights.slice(0,3).map(h=>`<li>${esc(h)}</li>`).join('')}</ul>`:''}
+    <div class="req">${reqChips(s)}</div>
+    <div class="bot"><span>${fmtN(s.downloads)} downloads</span><span>${s.ratings?`${stars(s.rating)} <b style="color:var(--ink)">${s.rating.toFixed(1)}</b> <span style="color:var(--muted)">(${s.ratings})</span>`:'No ratings yet'}</span><span class="upd">v${s.version} · updated ${ago(s.updated)}${(s.shots||[]).length?` · ${s.shots.length} screenshot${s.shots.length===1?'':'s'}`:''}</span><span class="sp"></span><span class="price ${p.cls}">${p.t}</span></div>
+  </div>`;
+}
+function mcpCard(m){
+  const by = m.creator ? `${avatar(m.creator,20)} <b>@${m.creator}</b> ${badge(creator(m.creator))}` : `<span class="small">by <b style="color:var(--ink)">${esc(m.creator_name)}</b></span>`;
+  return `<div class="card sk" data-go="#/mcp/${m.id}">
+    <div class="top"><div class="em mcp">${mIcon(m,true)}</div><div style="min-width:0"><h3>${esc(m.name)} ${m.status?`<span class="badge ${m.status==='Broker'?'broker':m.status==='Partner'?'partner':'beta'}">${m.status}</span>`:''}${m.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h3><div class="by">${by}</div></div></div>
+    <p>${esc(m.pitch)}</p>
+    <ul class="hl">${m.tools.slice(0,3).map(([t,d])=>`<li><b style="font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--purple);font-weight:600">${esc(t)}</b> <span>${esc(d.split('.')[0])}</span></li>`).join('')}</ul><div class="req"><span class="chip rq">${m.tools.length} tools</span><span class="chip rq">${m.auth.split('·')[0].trim()}</span></div>
+    <div class="bot"><span>${fmtN(m.installs)} connected</span><span>${stars(m.rating)} <b style="color:var(--ink)">${m.rating.toFixed(1)}</b></span><span class="sp"></span><span class="price ${/^Free/.test(m.price)?'free':/PRO\+/.test(m.price)?'pro':''}">${esc(m.price.split('·')[0].trim().replace('Requires Blossom PRO+','PRO+'))}</span></div>
+  </div>`;
+}
+function library(){
+  const cats = ['All','Portfolio','Earnings','Dividends','Screens','Social','Research','Canada','Crypto','News'];
+  let list = allSkills().filter(s=>state.cat==='All'||s.cat===state.cat).filter(s=>!state.q||(s.name+' '+s.pitch+' '+s.creator+' '+s.cat).toLowerCase().includes(state.q.toLowerCase()));
+  const mo = s => s.price.free?0:(s.price.monthly||(s.price.yearly||0)/12||(s.price.once||0)/12);   // monthly-equivalent price for sorting
+  const sorters = {top:(a,b)=>b.rating*Math.log(b.ratings+1)-a.rating*Math.log(a.ratings+1), dl:(a,b)=>b.downloads-a.downloads, new:(a,b)=>b.updated.localeCompare(a.updated), price:(a,b)=>mo(a)-mo(b), pricehi:(a,b)=>mo(b)-mo(a)};
+  list.sort(sorters[state.sort]);
+  const totalDl = D.skills.reduce((a,s)=>a+s.downloads,0);
+  const hero = `<div class="hero"><div>
+      <h1>🤖 The Best Skills and MCPs for&nbsp;Investors</h1>
+      <p>Discover and download skills built by Blossom investors for Claude, ChatGPT, Grok and Cursor to supercharge your investing.</p>
+      <div class="search"><span style="color:var(--muted)">🔍</span><input id="q" placeholder="Search skills, creators, tickers… try “dividends”" value="${esc(state.q)}"><button class="pill pri sm" id="qgo">Search</button></div>
+      <div class="stats"><div><b>${allSkills().length}</b><span>skills</span></div><div><b>${listedMcps().length}</b><span>MCPs</span></div><div><b>${fmtN(totalDl)}</b><span>downloads</span></div><div><b>${Object.keys(D.creators).length}</b><span>creators</span></div></div>
+    </div>
+    <div class="side">
+      <div class="stack">${['maxstocks','dividendsdan','tfsa_tina','northofthe49','quantqueen','earningsedge'].map(h=>avatar(h,48)).join('')}</div>
+      <div class="t">Built by verified investors on Blossom<span>${Object.keys(D.creators).length} creators · ${fmtN(totalDl)} downloads</span></div>
+    </div></div>`;
+  const tabs = `<div class="tabs"><button class="${state.tab==='skills'?'on':''}" data-tab="skills">Skills<span class="n">${allSkills().length}</span></button><button class="${state.tab==='mcps'?'on':''}" data-tab="mcps">MCPs<span class="n">${listedMcps().length}</span></button><span class="sp" style="flex:1"></span><a class="pill pri sm" href="#/post" style="align-self:center">+ Post a skill</a></div>`;
+  let body='';
+  if(state.tab==='skills'){
+    body = `<div class="filters">${cats.map(c=>`<button class="chip ${state.cat===c?'on':''}" data-cat="${c}">${c}</button>`).join('')}<span class="sp"></span><select id="sort"><option value="top" ${state.sort==='top'?'selected':''}>Top rated</option><option value="dl" ${state.sort==='dl'?'selected':''}>Most downloaded</option><option value="new" ${state.sort==='new'?'selected':''}>Recently updated</option><option value="price" ${state.sort==='price'?'selected':''}>Price: low to high</option><option value="pricehi" ${state.sort==='pricehi'?'selected':''}>Price: high to low</option></select></div>
+      <div class="grid">${list.map(skillCard).join('')||'<div class="empty">Nothing matches that yet. <a href="#/post">Post the first one →</a></div>'}</div>`;
+  } else {
+    body = `<p class="small" style="margin:0 0 16px">An MCP is what gives a skill its data. Connect one once and every skill that needs it just works.</p><div class="grid">${listedMcps().map(mcpCard).join('')}</div>
+      <div class="card" style="margin-top:18px;padding:18px 22px;display:flex;gap:16px;align-items:center;background:linear-gradient(100deg,#fff,#F1F5F7)"><div style="font-size:30px">🧩</div><div><b style="color:var(--ink)">MCPs are listed by Blossom and its partners.</b><div class="small">Built an MCP investors would use? Tell us what it does and who it’s for and we'll consider adding it to the library!</div></div><a class="pill out sm" style="margin-left:auto" href="mailto:partnerships@blossomsocial.com?subject=MCP%20listing%20on%20Blossom%20Skills">Get in touch</a></div>`;
+  }
+  return `<div class="wrap">${hero}${tabs}${body}</div>`;
+}
+function bindLibrary(){
+  document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',e=>{ if(e.target.closest('a,button')) return; location.hash=el.dataset.go; }));
+  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ location.hash = b.dataset.tab==='mcps'?'#/mcps':'#/'; });
+  document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{ state.cat=b.dataset.cat; route(); });
+  const so=$('#sort'); if(so) so.onchange=()=>{ state.sort=so.value; route(); };
+  const q=$('#q'); if(q){ const go=()=>{ state.q=q.value; route(); const nq=$('#q'); if(nq){nq.focus(); nq.setSelectionRange(nq.value.length,nq.value.length);} }; q.addEventListener('keydown',e=>{ if(e.key==='Enter') go(); }); $('#qgo').onclick=go; }
+}
+
