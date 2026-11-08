@@ -1,0 +1,7 @@
+assets/
+index.html
+skills/
+dist/
+qa*
+build_backup_*.py
+__pycache__/
