@@ -155,27 +155,28 @@ def ssr_mcp(m):
 HOME_T = 'Blossom Skills & MCPs — the skills marketplace for investors (Claude, ChatGPT, Grok, Cursor)'
 HOME_D = 'Blossom Skills & MCPs is a skills marketplace for investors: download investing skills and connect MCPs that give Claude, ChatGPT, Grok and Cursor access to your portfolio, trades and what 500,000+ Blossom investors are doing. Built by verified investors on Blossom.'
 open(os.path.join(OUT, 'index.html'), 'w').write(page(HOME_T, HOME_D, SITE + '/'))
-# one static page per seeded skill and per MCP, so each tile is its own indexable URL (skills posted later are rendered by netlify/functions/page.mjs)
+# one static page per seeded skill and per MCP, so each tile is its own indexable URL (skills posted later are rendered by netlify/functions/page.mjs).
+# Written as <id>.html (not <id>/index.html) so Netlify's pretty URLs serve /skill/<id> directly without a 301 to a trailing slash.
 PAGES = os.path.join(OUT, 'pages'); import shutil; shutil.rmtree(PAGES, ignore_errors=True)
 urls = [SITE + '/', SITE + '/mcps', SITE + '/learn', SITE + '/post', SITE + '/terms']
 for s_ in SKILLS:
     c = CREATORS[s_['creator']]
     ld = '<script type="application/ld+json">' + json.dumps({"@context": "https://schema.org", "@type": "SoftwareApplication", "name": s_['name'], "description": s_['pitch'], "url": f"{SITE}/skill/{s_['id']}", "applicationCategory": "FinanceApplication", "operatingSystem": "Claude, ChatGPT, Grok, Cursor", "author": {"@type": "Person", "name": c['name']}, "softwareVersion": s_['version'], "dateModified": s_['updated'], "offers": {"@type": "Offer", "price": "0" if s_['price'].get('free') else str(s_['price'].get('monthly') or s_['price'].get('yearly') or s_['price'].get('once')), "priceCurrency": "CAD"}}, ensure_ascii=False) + '</script>'
-    d = os.path.join(PAGES, 'skill', s_['id']); os.makedirs(d, exist_ok=True)
-    open(os.path.join(d, 'index.html'), 'w').write(page(f"{s_['name']} by {c['name']} — a skill for Claude, ChatGPT, Grok and Cursor | Blossom Skills", s_['pitch'], f"{SITE}/skill/{s_['id']}", ld, ssr_skill(s_)))
+    d = os.path.join(PAGES, 'skill'); os.makedirs(d, exist_ok=True)
+    open(os.path.join(d, s_['id'] + '.html'), 'w').write(page(f"{s_['name']} by {c['name']} — a skill for Claude, ChatGPT, Grok and Cursor | Blossom Skills", s_['pitch'], f"{SITE}/skill/{s_['id']}", ld, ssr_skill(s_)))
     urls.append(f"{SITE}/skill/{s_['id']}")
 for m in MCPS:
     if m.get('compat'): continue
-    d = os.path.join(PAGES, 'mcp', m['id']); os.makedirs(d, exist_ok=True)
-    open(os.path.join(d, 'index.html'), 'w').write(page(f"{m['name']} MCP — connect it to Claude, ChatGPT, Grok and Cursor | Blossom Skills", m['pitch'], f"{SITE}/mcp/{m['id']}", '', ssr_mcp(m)))
+    d = os.path.join(PAGES, 'mcp'); os.makedirs(d, exist_ok=True)
+    open(os.path.join(d, m['id'] + '.html'), 'w').write(page(f"{m['name']} MCP — connect it to Claude, ChatGPT, Grok and Cursor | Blossom Skills", m['pitch'], f"{SITE}/mcp/{m['id']}", '', ssr_mcp(m)))
     urls.append(f"{SITE}/mcp/{m['id']}")
 for route_ in ('mcps', 'learn', 'post', 'terms'):
-    d = os.path.join(PAGES, route_); os.makedirs(d, exist_ok=True)
+    os.makedirs(PAGES, exist_ok=True)
     titles = {'mcps': ('MCPs for investors — Blossom Connector, Aggregate Trade Data, Fiscal.ai and brokerage MCPs | Blossom Skills', 'MCP servers that connect Claude, ChatGPT, Grok and Cursor to your portfolio, trades, the Blossom community and your brokerage.'),
               'learn': ('What are skills and MCPs? How Blossom Skills works', 'Skills are instructions your AI assistant follows; MCPs are the connections that give it your data. How to connect an MCP, download a skill and ask in plain words.'),
               'post': ('Post a skill — publish your investing skill on Blossom', 'Upload a SKILL.md, add a pitch, sample output and screenshots, set a price, and it goes live in the Blossom Skills library.'),
               'terms': ('Creator terms — Blossom Skills', 'Terms for publishing and selling skills on Blossom Skills: ownership, the 20% platform fee, monthly payouts, updates, refunds and removal.')}
-    open(os.path.join(d, 'index.html'), 'w').write(page(titles[route_][0], titles[route_][1], f"{SITE}/{route_}"))
+    open(os.path.join(PAGES, route_ + '.html'), 'w').write(page(titles[route_][0], titles[route_][1], f"{SITE}/{route_}"))
 open(os.path.join(OUT, 'sitemap.xml'), 'w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + ''.join(f'<url><loc>{u}</loc></url>' for u in urls) + '</urlset>\n')
 open(os.path.join(OUT, 'robots.txt'), 'w').write(f'User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\nSitemap: {SITE}/.netlify/functions/sitemap\n')
 # Netlify: static pages win; skills published later (no static page) are rendered by the page function; everything else is the SPA shell.
