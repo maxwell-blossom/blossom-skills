@@ -11,5 +11,5 @@ export default async () => {
   ]);
   if (e1 || e2 || e3) return json({ error: (e1 || e2 || e3).message }, 500);
   for (const s of skills) { if (!s.price?.free) s.skill_md = preview(s.skill_md || ''); }
-  return json({ skills, creators, updates }, 200, { 'cache-control': 'public, max-age=60' });
+  return json({ skills, creators, updates }, 200, { 'cache-control': 'no-store' });
 };

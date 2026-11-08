@@ -1,7 +1,7 @@
 // ---------- creator terms (draft)
 function terms(){
   const S=(h,b)=>`<h3 style="margin:22px 0 6px;font-size:16px">${h}</h3><p style="margin:0;font-size:14.5px;line-height:1.6">${b}</p>`;
-  return `<div class="wrap" style="max-width:820px"><div class="small" style="margin-bottom:12px"><a href="#/">Skills</a> › Creator terms</div>
+  return `<div class="wrap" style="max-width:820px"><div class="small" style="margin-bottom:12px"><a href="/">Skills</a> › Creator terms</div>
   <div class="card" style="padding:28px 32px"><h1 style="font-size:26px;margin:0 0 4px">Blossom Skills — Creator Terms</h1><div class="small">Draft v0.1 · November 2026 · for review by Blossom before launch. Plain-language summary first, the terms follow.</div>
   <div class="review-ok" style="margin:16px 0 4px"><span>🌼</span><div><b>In short:</b> you own your skill, Blossom gets a licence to host and sell it, you keep 80% of what it earns, you keep it updated if people subscribe, you never put secrets or personal data in it, and nothing on Blossom Skills is investment advice.</div></div>
   ${S('1. Who can publish','Anyone with a Blossom account in good standing. You must be 18 or older and legally able to receive payments where you live. Blossom may ask you to verify your identity before the first payout.')}

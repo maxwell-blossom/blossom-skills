@@ -1,4 +1,6 @@
 const D = __DATA__;
+const BASE = D.base || '';   // '' on blossom-skills.netlify.app; '/skillsandmcps' once it lives on blossomsocial.com
+function go(path){ history.pushState(null, '', BASE + path); route(); }
 D.remote = [];   // skills published through the site and approved (status=live in Supabase); loaded by loadCatalogue()
 const shotUrl = f => /^https?:|^data:/.test(f) ? f : 'shots/' + f;
 async function loadCatalogue(){
@@ -8,8 +10,8 @@ async function loadCatalogue(){
     (j.creators||[]).forEach(c=>{ if(!D.creators[c.handle]) D.creators[c.handle] = {handle:c.handle, name:c.name, badge:c.badge, bio:c.bio||'', followers:c.followers||0, photo_url:c.photo_url, color:'#7361F7', initials:(c.name||c.handle).slice(0,1).toUpperCase()}; });
     const logs = {}; (j.updates||[]).forEach(u=>{ (logs[u.skill_id]=logs[u.skill_id]||[]).push([u.version, (u.created_at||'').slice(0,10), u.note]); });
     D.remote = (j.skills||[]).filter(s=>!have.has(s.id)).map(s=>({ id:s.id, creator:s.creator, name:s.name, emoji:s.emoji||'🧾', icon:s.icon_url||null, cat:s.cat||'Portfolio', pitch:s.pitch||'', highlights:s.highlights||[], requires:s.requires||[], optional:s.optional||[], trades:!!s.trades, price:s.price||{free:true}, cadence:s.cadence||'Monthly', prompts:(s.prompts||[]).length?s.prompts:['Run '+s.name], sample:s.sample||'', shots:s.shots||[], skill:s.skill_md||'', status:'live', downloads:s.downloads||0, rating:+s.rating||0, ratings:s.ratings||0, version:s.version||'1.0.0', updated:(s.updated_at||'').slice(0,10), log:logs[s.id]||[['1.0.0',(s.updated_at||'').slice(0,10),'Initial release']], reviews:[], remote:true }));
-    if(D.remote.length) route();
-  } catch(e) { console.warn('catalogue', e.message); }
+    D.loaded = true; route();
+  } catch(e) { D.loaded = true; console.warn('catalogue', e.message); }
 }
 const BROKERS = __BROKERS__;
 function brokerStrip(note){ return `<div class="brokers"><div class="bl">${BROKERS.map(([n,b])=>`<img src="data:image/png;base64,${b}" alt="${n}" title="${n}">`).join('')}<span class="more">+ 14 more</span></div><div class="small">${note}</div></div>`; }

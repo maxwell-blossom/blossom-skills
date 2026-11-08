@@ -52,13 +52,13 @@ function wizard(){
       <div class="f"><label>Before you publish</label><div class="checks">
         <label class="check ${w.tested?'ok':''}"><input type="checkbox" id="tested" ${w.tested?'checked':''}> I ran it in Claude or ChatGPT this week and the sample output is real</label>
         <label class="check ${w.nosecret?'ok':''}"><input type="checkbox" id="nosecret" ${w.nosecret?'checked':''}> No API keys, account numbers or personal data in the file</label>
-        <label class="check ${w.agree?'ok':''}"><input type="checkbox" id="agree" ${w.agree?'checked':''}> I own this content and agree to the <a href="#/terms" target="_blank">Creator terms</a> (20% platform fee${w.model!=='free'?', paid out monthly by Blossom':''})</label>
+        <label class="check ${w.agree?'ok':''}"><input type="checkbox" id="agree" ${w.agree?'checked':''}> I own this content and agree to the <a href="/terms" target="_blank" rel="noopener">Creator terms</a> (20% platform fee${w.model!=='free'?', paid out monthly by Blossom':''})</label>
       </div></div>
       <div class="review-ok"><span>🌼</span><div><b>Goes live immediately.</b> Blossom spot-checks new listings after the fact — a skill that places orders must say so, and anything misleading gets unlisted.</div></div>`;
   }
   const canNext = w.step===1 ? (w.type==='mcp' || !!w.text) : w.step===2 ? (w.name && w.pitch) : w.step===3 ? (w.model==='free' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(w.payEmail)) : true;
   const last = w.step===5;
-  return `<div class="wrap"><div class="small" style="margin-bottom:12px"><a href="#/">Skills</a> › Post a skill</div><div class="wiz">${nav}<div class="card wpanel">${p}
+  return `<div class="wrap"><div class="small" style="margin-bottom:12px"><a href="/">Skills</a> › Post a skill</div><div class="wiz">${nav}<div class="card wpanel">${p}
     <div class="wnav"><button class="pill sec" id="back" ${w.step===1?'style="visibility:hidden"':''}>← Back</button><div class="small">Step ${w.step} of 5</div><button class="pill ${canNext?'pri':'dis'}" id="next" ${canNext?'':'disabled'}>${last?'Publish':'Continue →'}</button></div></div></div></div>`;
 }
 const TEMPLATE = `---\nname: my-checklist\ndescription: A short checklist run against the user's Blossom portfolio. Use when the user asks to "run my checklist".\n---\n\n# My checklist\n\n## Needs\n- Blossom Connector MCP: get_portfolio\n\n## Steps\n1. Call get_portfolio. Keep holdings with weight >= 1%.\n2. For each holding, check: (your rule here).\n3. Output a table: Ticker | Weight | Check | Note.\n\n## Rules\n- Only describe what the user holds. No buy/sell recommendations.\n`;
@@ -95,7 +95,7 @@ function bindWizard(){
     const me=creator(ME)||{name:ME};
     post('publish',{creator:{handle:ME, name:me.name, email:w.payEmail||null, payout_method:w.model==='free'?null:w.payMethod, payout_email:w.model==='free'?null:w.payEmail},
       skill:{name:s.name, emoji:s.emoji, cat:s.cat, pitch:s.pitch, highlights:[], requires:s.requires, optional:s.optional, trades:s.trades, price:s.price, cadence:s.cadence, prompts:s.prompts, sample:s.sample, shots:[], skill_md:s.skill, first:w.first}})
-    .then(j=>{ s.id=j.id; s.status='Live'; const m=mine(); m.unshift(s); LS.set('mine',m); state.wiz=null; location.hash='#/manage/'+j.id; })
+    .then(j=>{ s.id=j.id; s.status='Live'; const m=mine(); m.unshift(s); LS.set('mine',m); state.wiz=null; go('/manage/'+j.id); })
     .catch(err=>{ btn.disabled=false; btn.textContent='Publish'; toast('Could not publish: '+err.message); }); };
 }
 

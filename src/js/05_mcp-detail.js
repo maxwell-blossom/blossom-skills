@@ -1,7 +1,7 @@
 // ---------- MCP detail
 function mcpDetail(id){
   const m=mcp(id); if(!m) return library();
-  const by = m.creator ? `${avatar(m.creator,24)} <b>${esc(creator(m.creator).name)}</b> @${m.creator} ${badge(creator(m.creator))}` : `<span class="small">by <b style="color:var(--ink)">${esc(m.creator_name)}</b>${m.id==='fiscal-ai'?' · <a href="https://docs.fiscal.ai/docs/guides/mcp-integration" target="_blank" rel="noopener">docs ↗</a>':''}</span>`;
+  const by = `<span class="small">by <b style="color:var(--ink)">${esc(m.creator ? creator(m.creator).name : m.creator_name)}</b>${m.id==='fiscal-ai'?' · <a href="https://docs.fiscal.ai/docs/guides/mcp-integration" target="_blank" rel="noopener">docs ↗</a>':''}</span>`;
   const local = !/^https?:/.test(m.url);
   const snippets = local ? {
     claude: `<ol class="steps"><li>This MCP runs on your computer. Install it: <code>${esc(m.url.split('  ')[0])}</code>.</li><li>Set the credentials it needs (${esc(m.auth.split(';')[0])}).</li><li>Add it to Claude Desktop under <b>Settings → Developer → Edit config</b> as a stdio server, or run it with HTTP transport and add the local URL as a custom connector.</li></ol>`,
@@ -17,7 +17,7 @@ function mcpDetail(id){
     grok: `<ol class="steps"><li>Go to <b>grok.com/connectors → New Connector → Custom</b>.</li><li>Paste <code>${m.url}</code> and complete the sign-in it asks for.</li><li>Turn the connector on in a chat. On Grok Business or Enterprise an admin provisions it first in the cloud console.</li></ol>`
   };
   const using = allSkills().filter(s=>(s.requires||[]).includes(m.id));
-  return `<div class="wrap"><div class="small" style="margin-bottom:12px"><a href="#/mcps">MCPs</a> › ${esc(m.name)}</div>
+  return `<div class="wrap"><div class="small" style="margin-bottom:12px"><a href="/mcps">MCPs</a> › ${esc(m.name)}</div>
   <div class="detail"><div>
     <div class="card"><div class="dhead"><div class="em mcp">${mIcon(m,true)}</div><div style="flex:1;min-width:0"><h1>${esc(m.name)} ${m.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h1><div class="pitch">${esc(m.pitch)}</div><div class="by">${by}</div>
       <div class="stats"><div><b>${fmtN(m.installs)}</b>connected</div><div><b>${stars(m.rating)} ${m.rating.toFixed(1)}</b>${m.ratings} ratings</div><div><b>${m.tools.length}</b>tools</div><div><b>${m.version==='—'?ago(m.updated):'v'+m.version}</b>${m.version==='—'?'last update':'updated '+ago(m.updated)}</div></div></div></div>
@@ -38,6 +38,6 @@ function bindMcp(id){
   document.querySelectorAll('[data-mtab]').forEach(b=>b.onclick=()=>{ state.itab=b.dataset.mtab; route(); });
   bindCopy();
   $('#connect').onclick=()=>{ if(m.id==='fiscal-ai'){ window.open('https://docs.fiscal.ai/docs/guides/mcp-integration','_blank'); return; } if(!m.creator){ copy(m.url.split('  ')[0], 'Install command copied'); return; } copy(m.url, 'Connector URL copied — paste it in Claude → Settings → Connectors'); };
-  document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',e=>{ if(e.target.closest('a,button')) return; location.hash=el.dataset.go; }));
+  document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',e=>{ if(e.target.closest('a,button')) return; go(el.dataset.go); }));
 }
 
