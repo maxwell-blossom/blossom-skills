@@ -61,7 +61,7 @@ function wizard(){
   }
   const canNext = w.step===1 ? (w.type==='mcp' || !!w.text) : w.step===2 ? (w.name && w.pitch && w.handle) : w.step===3 ? (w.model==='free' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(w.payEmail)) : true;
   const last = w.step===5;
-  return `<div class="wrap"><div class="small" style="margin-bottom:12px"><a href="/">Skills</a> › Post a skill</div><div class="wiz">${nav}<div class="card wpanel">${p}
+  return `<div class="wrap">${pageHead('Skills','/')}<div class="wiz">${nav}<div class="card wpanel">${p}
     <div class="wnav"><button class="pill sec" id="back" ${w.step===1?'style="visibility:hidden"':''}>← Back</button><div class="small">Step ${w.step} of 5</div><button class="pill ${canNext?'pri':'dis'}" id="next" ${canNext?'':'disabled'}>${last?'Publish':'Continue →'}</button></div></div></div></div>`;
 }
 const TEMPLATE = `---\nname: my-checklist\ndescription: A short checklist run against the user's Blossom portfolio. Use when the user asks to "run my checklist".\n---\n\n# My checklist\n\n## Needs\n- Blossom Connector MCP: get_portfolio\n\n## Steps\n1. Call get_portfolio. Keep holdings with weight >= 1%.\n2. For each holding, check: (your rule here).\n3. Output a table: Ticker | Weight | Check | Note.\n\n## Rules\n- Only describe what the user holds. No buy/sell recommendations.\n`;
@@ -103,4 +103,3 @@ function bindWizard(){
     .then(j=>{ s.id=j.id; s.status='Live'; const m=mine(); m.unshift(s); LS.set('mine',m); state.wiz=null; go('/manage/'+j.id); })
     .catch(err=>{ btn.disabled=false; btn.textContent='Publish'; toast('Could not publish: '+err.message); }); };
 }
-
