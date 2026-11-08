@@ -44,4 +44,21 @@ out.append('commit;')
 os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'supabase'), exist_ok=True)
 path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'supabase', 'seed.sql')
 open(path, 'w', encoding='utf-8').write('\n'.join(out) + '\n')
-print(f"wrote {path} ({len(data.SKILLS)} skills, {len(list(creators))} creators)")
+# JSON twin for the seed function (netlify/functions/seed.mjs): same rows, loaded through supabase-js.
+rows = {'creators': [], 'skills': [], 'skill_updates': []}
+for handle, c in creators:
+    rows['creators'].append({'handle': handle, 'name': c['name'], 'badge': c.get('badge'), 'bio': c.get('bio'), 'followers': c.get('followers', 0),
+                             'photo_url': f"{SITE}/profiles/{c['photo']}" if c.get('photo') else None})
+for s in data.SKILLS:
+    rows['skills'].append({'id': s['id'], 'creator': s['creator'], 'name': s['name'], 'emoji': s.get('emoji'), 'cat': s.get('cat'), 'pitch': s.get('pitch'),
+                           'highlights': s.get('highlights') or [], 'requires': s.get('requires') or [], 'optional': s.get('optional') or [],
+                           'trades': bool(s.get('trades')), 'price': s.get('price') or {'free': True}, 'cadence': s.get('cadence'), 'prompts': s.get('prompts') or [],
+                           'sample': s.get('sample'), 'shots': [list(x) for x in (s.get('shots') or [])], 'skill_md': s['skill'], 'status': s.get('status') or 'live',
+                           'downloads': s.get('downloads', 0), 'rating': s.get('rating', 0), 'ratings': s.get('ratings', 0), 'version': s.get('version', '1.0.0'),
+                           'updated_at': s.get('updated')})
+    for ver, date, note in (s.get('log') or []):
+        rows['skill_updates'].append({'skill_id': s['id'], 'version': ver, 'note': note, 'created_at': date})
+jpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'netlify', 'functions', 'seed-data.json')
+os.makedirs(os.path.dirname(jpath), exist_ok=True)
+json.dump(rows, open(jpath, 'w', encoding='utf-8'), ensure_ascii=False)
+print(f"wrote {path} and {jpath} ({len(data.SKILLS)} skills, {len(rows['creators'])} creators, {len(rows['skill_updates'])} updates)")

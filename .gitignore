@@ -5,3 +5,4 @@ dist/
 qa*
 build_backup_*.py
 __pycache__/
+netlify/functions/seed-data.json
