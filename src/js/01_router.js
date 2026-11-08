@@ -22,7 +22,7 @@ function route(){
   else if(parts[0]==='u'){ app.innerHTML=creatorPage(parts[1]); bindLibrary(); }
   else if(parts[0]==='post'){ if(!state.wiz) state.wiz=newWiz(); app.innerHTML=wizard(); bindWizard(); }
   else if(parts[0]==='manage'){ app.innerHTML=manage(parts[1]); bindManage(parts[1]); }
-  else if(parts[0]==='success'){ app.innerHTML=success(parts[1], parts[2]); bindDetail(parts[1]); }
+  else if(parts[0]==='success'){ app.innerHTML=success(parts[1], parts[2]); bindDetail(parts[1]); confetti(parts[1]+':'+(tokens()[parts[1]]||'')); }
   else { app.innerHTML=library(); bindLibrary(); }
 }
 window.addEventListener('popstate', route);
