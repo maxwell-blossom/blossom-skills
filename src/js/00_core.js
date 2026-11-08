@@ -78,7 +78,7 @@ function avatar(h, size=28){
   return `<span class="ava" style="width:${size}px;height:${size}px;background:${c.color};font-size:${Math.round(size*.38)}px">${c.initials}</span>`;
 }
 const VB = `<img class="vb" src="data:image/svg+xml;base64,__BADGE__" alt="verified">`;
-function badge(c){ if(!c) return ''; if(c.badge==='verified') return VB; if(c.badge==='official') return VB+` <span class="badge official">Blossom</span>`; if(c.badge==='ambassador') return VB+` <span class="badge ambassador">Ambassador</span>`; if(c.badge==='pro') return `<span class="badge pro">PRO</span>`; return ''; }
+function badge(c){ if(!c) return ''; return ['verified','official','ambassador'].includes(c.badge) ? VB : ''; }   // text tags (Blossom / Ambassador / PRO) dropped — Max, Nov 8
 function stars(r){ const full=Math.round(r); return '<span class="star">'+'★'.repeat(full)+'</span><span style="color:#ddd">'+'★'.repeat(5-full)+'</span>'; }
 function priceLabel(p){ if(p.free) return {t:'Free',cls:'free'}; if(p.monthly) return {t:money(p.monthly)+'/mo',cls:''}; if(p.yearly) return {t:money(p.yearly)+'/yr',cls:''}; if(p.once) return {t:money(p.once)+' once',cls:''}; return {t:'Free',cls:'free'}; }
 function sIcon(s){ return s.icon?`<img src="${s.icon}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:s.emoji; }

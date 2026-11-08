@@ -39,6 +39,7 @@ SIDEBAR = ('<aside class="sidebar">'
   f'<a href="#" data-app>{NAV["resources"]}Resources</a><div class="sub">Get Help</div>'
   f'<a href="#" data-app class="bottom" style="color:var(--muted)">{NAV["settings"]}Settings</a></aside>')
 for m in MCPS:
+    if m.get('creator') == 'blossom' and not m.get('logo'): m['logo'] = 'logo_blossom_flower_256.jpg'   # Blossom MCPs get the flower, like the partner logos
     if m.get('logo'): m['logo_b64'] = base64.b64encode(open(os.path.join(OUT, 'assets', m['logo']), 'rb').read()).decode()
 
 # write SKILL.md files for the curl install
@@ -62,11 +63,47 @@ DATA = json.dumps(dict(creators=CREATORS, mcps=MCPS, skills=SKILLS_OUT, site=SIT
 
 SRC = os.path.join(OUT, "src")
 CSS = open(os.path.join(SRC, 'style.css'), encoding='utf-8').read()
+CSS += '\n/* learn / SEO section (home route only) */\n' + '.learn{display:none;margin-top:12px}body.home .learn{display:block}.learn h2{font-size:22px;margin-bottom:8px}.learn .lead{font-size:15.5px;color:var(--text);margin:0 0 18px;max-width:820px}.learn-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.learn-grid article{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px}.learn-grid h3{font-size:15.5px;margin-bottom:6px}.learn-grid p{margin:0;font-size:14px;color:var(--text);line-height:1.55}.learn-list{margin:0;padding-left:20px;font-size:14px;color:var(--text)}.learn-list li{margin:4px 0}@media (max-width:720px){.learn-grid{grid-template-columns:1fr}}'
 JS = '\n'.join(open(os.path.join(SRC, 'js', f), encoding='utf-8').read() for f in sorted(os.listdir(os.path.join(SRC, 'js'))) if f.endswith('.js'))
+
+FAQ = [
+  ("What is a skill?", "A skill is a small text file (SKILL.md) that teaches an AI assistant how to do one job well — for example, grade your income portfolio against a creator’s written rules, or read space stocks the way one investor does. You download it once, add it to Claude, ChatGPT, Grok or Cursor, and from then on you can ask for it in plain words. Skills on Blossom are written by investors, so they carry that investor’s judgment, not generic advice."),
+  ("What is an MCP?", "MCP (Model Context Protocol) is the open standard that lets an AI assistant connect to outside data and tools. An MCP server is what gives a skill its data: the Blossom Connector MCP gives your assistant read access to your portfolio, trades and the posts you follow; the Blossom Aggregate Trade Data MCP shows what 500,000+ investors are buying and selling; brokerage MCPs from Public, Questrade, Robinhood, Webull, moomoo, IBKR and Alpaca connect your account directly. You connect an MCP once and every skill that needs it just works."),
+  ("Which AI assistants do these work with?", "Claude (desktop, web and Claude Code), ChatGPT, Grok and Cursor. Each skill page has install steps for all of them, and each MCP page has the connector URL or command for all of them."),
+  ("Is it free?", "Many skills are free. Creators can also charge one-time, monthly or yearly; there are no free trials. The Blossom Connector MCP is included with Blossom PRO+. Blossom keeps 20% of each paid sale and pays creators the rest monthly."),
+  ("Can I publish my own skill?", "Yes — anyone with a Blossom account can post a skill. Upload your SKILL.md, add a pitch, a sample output and screenshots, pick a price, and it goes live in the library."),
+  ("Do skills place trades?", "Only if the creator turns on “This skill can place orders”, and then the listing says so. Everything else reads your data and explains, screens or alerts; the Blossom Connector itself never places trades."),
+]
+jsonld = [
+  {"@context": "https://schema.org", "@type": "WebSite", "name": "Blossom Skills & MCPs", "alternateName": "Blossom skills marketplace", "url": SITE + "/", "publisher": {"@type": "Organization", "name": "Blossom Social", "url": "https://www.blossomsocial.com/"}},
+  {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in FAQ]},
+  {"@context": "https://schema.org", "@type": "ItemList", "name": "Skills for investors", "itemListElement": [
+      {"@type": "ListItem", "position": i + 1, "item": {"@type": "SoftwareApplication", "name": s_['name'], "description": s_['pitch'], "url": f"{SITE}/#/skill/{s_['id']}", "applicationCategory": "FinanceApplication", "operatingSystem": "Claude, ChatGPT, Grok, Cursor",
+          "author": {"@type": "Person", "name": CREATORS[s_['creator']]['name']},
+          "offers": {"@type": "Offer", "price": "0" if s_['price'].get('free') else str(s_['price'].get('monthly') or s_['price'].get('yearly') or s_['price'].get('once')), "priceCurrency": "CAD"}}}
+      for i, s_ in enumerate(SKILLS)]},
+]
+JSONLD = ''.join('<script type="application/ld+json">' + json.dumps(j, ensure_ascii=False) + '</script>' for j in jsonld)
+import html as _html
+def _p(t): return _html.escape(t)
+LEARN = ('<section class="learn" id="learn"><div class="wrap">'
+  '<h2>What are skills and MCPs?</h2>'
+  '<p class="lead">Blossom Skills &amp; MCPs is a skills marketplace for investors. Skills are instructions your AI assistant follows; MCPs are the connections that give it your data. Together they turn Claude, ChatGPT, Grok or Cursor into an investing assistant that knows your portfolio and thinks like the investors you follow on Blossom.</p>'
+  '<div class="learn-grid">' + ''.join(f'<article><h3>{_p(q)}</h3><p>{_p(a)}</p></article>' for q, a in FAQ) + '</div>'
+  '<h2 style="margin-top:28px">Skills in the library</h2><ul class="learn-list">' + ''.join(f'<li><a href="#/skill/{s_["id"]}">{_p(s_["name"])}</a> by {_p(CREATORS[s_["creator"]]["name"])} — {_p(s_["pitch"])}</li>' for s_ in SKILLS) + '</ul>'
+  '<h2 style="margin-top:28px">MCPs for investors</h2><ul class="learn-list">' + ''.join(f'<li><a href="#/mcp/{m["id"]}">{_p(m["name"])}</a> — {_p(m["pitch"])}</li>' for m in MCPS if not m.get("compat")) + '</ul>'
+  '</div></section>')
+# llms.txt: the plain-text version of the catalogue for AI assistants and crawlers
+llms = ['# Blossom Skills & MCPs', '', '> A skills marketplace for investors: investing skills (SKILL.md files) and MCP servers for Claude, ChatGPT, Grok and Cursor, built by verified investors on Blossom Social. ' + SITE + '/', '', '## What they are', '']
+llms += [f'- {q} {a}' for q, a in FAQ]
+llms += ['', '## Skills', ''] + [f'- [{s_["name"]}]({SITE}/#/skill/{s_["id"]}) by {CREATORS[s_["creator"]]["name"]} (@{s_["creator"]}): {s_["pitch"]} Price: {"free" if s_["price"].get("free") else ", ".join(f"{k} ${v}" for k, v in s_["price"].items())}.' for s_ in SKILLS]
+llms += ['', '## MCPs', ''] + [f'- [{m["name"]}]({SITE}/#/mcp/{m["id"]}): {m["pitch"]}' for m in MCPS if not m.get('compat')]
+llms += ['', '## Publish', '', f'- Post a skill: {SITE}/#/post', f'- Creator terms: {SITE}/#/terms', '']
+open(os.path.join(OUT, 'llms.txt'), 'w', encoding='utf-8').write('\n'.join(llms))
 
 HTML = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>The Best Skills and MCPs for Investors — Blossom Skills</title>
+<title>Blossom Skills &amp; MCPs — the skills marketplace for investors (Claude, ChatGPT, Grok, Cursor)</title>
 <meta property="og:title" content="The Best Skills and MCPs for Investors — Blossom Skills">
 <meta property="og:description" content="Skills and MCPs built by verified investors on Blossom, for Claude, ChatGPT, Grok and Cursor. Connect your portfolio once, then run the skills — free, or subscribe to a creator.">
 <meta property="og:type" content="website">
@@ -74,7 +111,9 @@ HTML = f"""<!doctype html>
 <meta property="og:image" content="https://blossom-skills.netlify.app/og.jpg"><meta property="og:image:secure_url" content="https://blossom-skills.netlify.app/og.jpg"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:alt" content="The Best Skills and MCPs for Investors — Blossom Skills"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:site_name" content="Blossom Skills">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="The Best Skills and MCPs for Investors — Blossom Skills"><meta name="twitter:image" content="https://blossom-skills.netlify.app/og.jpg">
 <link rel="canonical" href="https://blossom-skills.netlify.app/">
-<meta name="description" content="Skills and MCPs built by verified investors on Blossom, for Claude, ChatGPT, Grok and Cursor. Connect your portfolio once, then run the skills — free, or subscribe to a creator.">
+<meta name="description" content="Blossom Skills &amp; MCPs is a skills marketplace for investors: download investing skills and connect MCPs that give Claude, ChatGPT, Grok and Cursor access to your portfolio, trades and what 500,000+ Blossom investors are doing. Built by verified investors on Blossom.">
+<meta name="keywords" content="skills marketplace, MCP marketplace, investing skills, Claude skills, ChatGPT investing, MCP for investors, Model Context Protocol, agent skills, Blossom Social, portfolio MCP, agentic trading">
+{JSONLD}
 <link rel="icon" href="/favicon.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -85,6 +124,7 @@ HTML = f"""<!doctype html>
 <a class="pill pri" href="https://www.blossomsocial.com/" target="_blank" rel="noopener" style="margin-left:12px">Sign up</a></div>
 <div class="shell">{SIDEBAR}
 <div class="main"><div id="app"></div>
+{LEARN}
 <footer>Blossom Skills · V1 preview · <a href="#/post">Post a skill</a> · <a href="#/mcps">MCPs</a> · <a href="https://www.blossomsocial.com/" target="_blank" rel="noopener">blossomsocial.com</a></footer></div></div>
 <script>{JS.replace('__DATA__', DATA).replace('__BROKERS__', BROKERS_JS).replace('__BEEVIS__', beevis_b64).replace('__FLOWER__', flower_b64).replace('__BADGE__', badge_b64)}</script>
 </body></html>"""

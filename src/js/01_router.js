@@ -7,6 +7,7 @@ function route(){
     if(sid && !tokens()[id]) api('unlock?session_id='+encodeURIComponent(sid)).then(j=>{ const t=tokens(); t[id]=j.token; LS.set('tokens',t); if(j.email) LS.set('email',j.email); const o=owned(); o[id]=j.plan||plan; LS.set('owned',o); route(); }).catch(e=>toast('Could not confirm the payment: '+e.message));
     return route(); }
   const parts = h.slice(2).split('/');
+  document.body.classList.toggle('home', parts[0]==='');
   window.scrollTo(0,0);
   const app = $('#app');
   if(parts[0]==='' ){ state.tab='skills'; app.innerHTML=library(); bindLibrary(); }

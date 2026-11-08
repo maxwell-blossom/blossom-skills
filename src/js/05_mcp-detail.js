@@ -19,7 +19,7 @@ function mcpDetail(id){
   const using = allSkills().filter(s=>(s.requires||[]).includes(m.id));
   return `<div class="wrap"><div class="small" style="margin-bottom:12px"><a href="#/mcps">MCPs</a> › ${esc(m.name)}</div>
   <div class="detail"><div>
-    <div class="card"><div class="dhead"><div class="em mcp">${mIcon(m,true)}</div><div style="flex:1;min-width:0"><h1>${esc(m.name)} ${m.status?`<span class="badge ${m.status==='Broker'?'broker':m.status==='Partner'?'partner':'beta'}">${m.status}</span>`:''}${m.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h1><div class="pitch">${esc(m.pitch)}</div><div class="by">${by}</div>
+    <div class="card"><div class="dhead"><div class="em mcp">${mIcon(m,true)}</div><div style="flex:1;min-width:0"><h1>${esc(m.name)} ${m.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h1><div class="pitch">${esc(m.pitch)}</div><div class="by">${by}</div>
       <div class="stats"><div><b>${fmtN(m.installs)}</b>connected</div><div><b>${stars(m.rating)} ${m.rating.toFixed(1)}</b>${m.ratings} ratings</div><div><b>${m.tools.length}</b>tools</div><div><b>${m.version==='—'?ago(m.updated):'v'+m.version}</b>${m.version==='—'?'last update':'updated '+ago(m.updated)}</div></div></div></div>
       <div class="dbody">
         <div class="blk"><h3>${IC.wrench}Tools</h3><table class="tools">${m.tools.map(([t,d])=>`<tr><td>${esc(t)}</td><td>${esc(d)}</td></tr>`).join('')}</table></div>
