@@ -17,7 +17,7 @@ function mcpDetail(id){
     grok: `<ol class="steps"><li>Go to <b>grok.com/connectors → New Connector → Custom</b>.</li><li>Paste <code>${m.url}</code> and complete the sign-in it asks for.</li><li>Turn the connector on in a chat. On Grok Business or Enterprise an admin provisions it first in the cloud console.</li></ol>`
   };
   const using = allSkills().filter(s=>(s.requires||[]).includes(m.id));
-  return `<div class="wrap">${pageHead(esc(m.name), m.creator?'Blossom MCP · coming soon':'Partner MCP', '/mcps')}
+  return `<div class="wrap">${pageHead('MCPs', '/mcps')}
   <div class="detail"><div>
     <div class="card"><div class="dhead"><div class="em mcp">${mIcon(m,true)}</div><div style="flex:1;min-width:0"><h1>${esc(m.name)}${m.creator?' <span class="badge soon">Coming soon</span>':''}${m.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h1><div class="pitch">${esc(m.pitch)}</div><div class="by">${by}</div>
       <div class="stats"><div><b>${fmtN(m.installs)}</b>connected</div><div><b>${stars(m.rating)} ${m.rating.toFixed(1)}</b>${m.ratings} ratings</div><div><b>${m.tools.length}</b>tools</div><div><b>${m.version==='—'?ago(m.updated):'v'+m.version}</b>${m.version==='—'?'last update':'updated '+ago(m.updated)}</div></div></div></div>

@@ -61,7 +61,7 @@ const fmtN = n => n >= 1000 ? (n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'')+
 const money = v => '$' + (Number.isInteger(v) ? v : v.toFixed(2));
 const ago = d => { const days = Math.floor((new Date() - new Date(d))/86400000); return days<=0?'today':days===1?'1 day ago':days<30?days+' days ago':Math.round(days/30)+' mo ago'; };
 const LS = { get:(k,d)=>{try{return JSON.parse(localStorage.getItem('bs_'+k))??d}catch(e){return d}}, set:(k,v)=>{try{localStorage.setItem('bs_'+k,JSON.stringify(v))}catch(e){}} };
-let state = { tab:'skills', cat:'All', sort:'top', q:'', dtab:'overview', itab:'claude', plan:null, wiz:null };
+let state = { tab:'skills', cats:[], sort:'top', q:'', dtab:'overview', itab:'claude', plan:null, wiz:null };
 const mine = () => LS.get('mine', []);
 const allSkills = () => { const r=D.remote||[]; const ids=new Set(r.map(s=>s.id)); return D.skills.concat(r).concat(mine().filter(s=>!ids.has(s.id))); };
 const skill = id => allSkills().find(s=>s.id===id);
@@ -71,7 +71,7 @@ const creator = h => D.creators[h];
 const owned = () => LS.get('owned', {});
 
 // Page header in the Blossom app style: round back button on the left, title (and a line under it) centred.
-function pageHead(title, sub, back){ return `<div class="phead"><a class="pback" href="${back}" aria-label="Back">${IC.back}</a><div class="pt"><b>${title}</b>${sub?`<span>${sub}</span>`:''}</div><span class="pback" style="visibility:hidden"></span></div>`; }
+function pageHead(label, back){ return `<div class="phead"><a class="pback" href="${back}" aria-label="Back">${IC.back}</a><a class="pbl" href="${back}">${esc(label)}</a></div>`; }
 const isReal = s => !!(s.remote || s.mine);   // published through the site, as opposed to the seeded examples
 function toast(t){ document.querySelectorAll('.toast').forEach(x=>x.remove()); const el=document.createElement('div'); el.className='toast'; el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),2200); }
 function copy(t, msg='Copied'){ navigator.clipboard?.writeText(t).then(()=>toast(msg),()=>toast(msg)); }
