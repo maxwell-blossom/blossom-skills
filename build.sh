@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Netlify build: unpack binary assets, build the page, assemble the publish dir.
+# Functions read STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET from Netlify env (set Nov 8, Stripe sandbox).
 set -euo pipefail
 [ -d assets ] || base64 -d assets.tgz.b64 | tar xz
 python3 build.py
