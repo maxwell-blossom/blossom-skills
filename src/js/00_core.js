@@ -7,7 +7,7 @@ async function loadCatalogue(){
   try {
     const j = await api('catalogue');
     const have = new Set(D.skills.map(s=>s.id));
-    (j.creators||[]).forEach(c=>{ if(!D.creators[c.handle]) D.creators[c.handle] = {handle:c.handle, name:c.name, badge:c.badge, bio:c.bio||'', followers:c.followers||0, photo_url:c.photo_url, url:c.url||null, color:'#7361F7', initials:(c.name||c.handle).slice(0,1).toUpperCase()}; });
+    (j.creators||[]).forEach(c=>{ if(!D.creators[c.handle]) D.creators[c.handle] = {handle:c.handle, name:c.name, badge:c.badge, bio:c.bio||'', followers:c.followers||0, photo_url:c.photo_url, url:c.url||null, following:c.following||0, stocks:c.stocks||0, portfolio:Array.isArray(c.portfolio)?c.portfolio:null, color:'#7361F7', initials:(c.name||c.handle).slice(0,1).toUpperCase()}; });
     const logs = {}; (j.updates||[]).forEach(u=>{ (logs[u.skill_id]=logs[u.skill_id]||[]).push([u.version, (u.created_at||'').slice(0,10), u.note]); });
     D.remote = (j.skills||[]).filter(s=>!have.has(s.id)).map(s=>({ id:s.id, creator:s.creator, name:s.name, emoji:s.emoji||'🧾', icon:s.icon_url||null, cat:s.cat||'Portfolio', pitch:s.pitch||'', highlights:s.highlights||[], requires:s.requires||[], optional:s.optional||[], trades:!!s.trades, price:s.price||{free:true}, cadence:s.cadence||'Monthly', prompts:(s.prompts||[]).length?s.prompts:['Run '+s.name], sample:s.sample||'', shots:s.shots||[], skill:s.skill_md||'', status:'live', downloads:s.downloads||0, rating:+s.rating||0, ratings:s.ratings||0, version:s.version||'1.0.0', updated:(s.updated_at||'').slice(0,10), log:logs[s.id]||[['1.0.0',(s.updated_at||'').slice(0,10),'Initial release']], reviews:[], remote:true }));
     D.loaded = true; route();
@@ -31,9 +31,9 @@ const post = (name, body) => api(name, {method:'POST', headers:{'content-type':'
 const tokens = () => LS.get('tokens', {});
 const emailOk = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e||'');
 // Small email prompt used by checkout and restore.
-function askEmail(title, cta, onGo){
+function askEmail(title, cta, onGo, hint){
   const m=document.createElement('div'); m.className='modal'; m.innerHTML=`<div class="mbox"><div class="mh"><span style="font-size:18px">✉️</span><b>${esc(title)}</b><button class="x" id="mx">×</button></div><div class="mb">
-    <div class="f"><label>Your email</label><input type="email" id="em" placeholder="you@example.com" value="${esc(LS.get('email',''))}" autocomplete="email"><div class="hint">Your receipt and download link go here. We never sell it.</div></div>
+    <div class="f"><label>Your email</label><input type="email" id="em" placeholder="you@example.com" value="${esc(LS.get('email',''))}" autocomplete="email"><div class="hint">${esc(hint||"Only for your receipt. The download unlocks right here as soon as you’ve paid.")}</div></div>
     <button class="pill pri lg" id="go" style="margin-top:4px">${esc(cta)}</button></div></div>`;
   document.body.appendChild(m); const inp=$('#em',m); inp.focus();
   $('#mx',m).onclick=()=>m.remove(); m.addEventListener('click',e=>{ if(e.target===m) m.remove(); });
@@ -103,7 +103,11 @@ function md(src){
   while(i<lines.length){
     const l=lines[i];
     if(l.startsWith('```')){ let j=i+1, buf=[]; while(j<lines.length && !lines[j].startsWith('```')){buf.push(lines[j]);j++;} out.push('<pre>'+esc(buf.join('\n'))+'</pre>'); i=j+1; continue; }
-    if(l.startsWith('|')){ let rows=[]; while(i<lines.length && lines[i].startsWith('|')){ rows.push(lines[i]); i++; } rows=rows.filter(r=>!/^\|\s*-/.test(r)); const cells=r=>r.split('|').slice(1,-1).map(c=>c.trim()); out.push('<table><tr>'+cells(rows[0]).map(c=>'<th>'+inl(c)+'</th>').join('')+'</tr>'+rows.slice(1).map(r=>'<tr>'+cells(r).map(c=>'<td>'+inl(c)+'</td>').join('')+'</tr>').join('')+'</table>'); continue; }
+    if(/^#{1,4} /.test(l)){ const n=l.match(/^#+/)[0].length; out.push(`<h${n+1}>`+inl(l.replace(/^#+ /,''))+`</h${n+1}>`); i++; continue; }
+    if(l.startsWith('|')){ let rows=[]; while(i<lines.length && lines[i].startsWith('|')){ rows.push(lines[i]); i++; } rows=rows.filter(r=>!/^\|\s*-/.test(r)); const cells=r=>r.split('|').slice(1,-1).map(c=>c.trim());
+      // Cells get the same treatment Claude's own chat output gets: numbers right-aligned, gains green / losses red, verdict words as chips.
+      const td=c=>{ const t=c.replace(/\*\*/g,''); const num=/^[~≈]?[+\-−$]?\$?\d[\d,.]*%?$|^[+\-−]\d/.test(t)||/^\d+(\.\d+)?%$/.test(t)||t==='n/a'||t==='—'; const cls=/^[+]\d|^\+/.test(t)?' up':/^[\-−]\d/.test(t)?' down':''; const v=/^(healthy|strong|good|pass|ok|buy|hold|keep)\b/i.test(t)?'ok':/^(watch|caution|monitor|neutral|too young|new)\b/i.test(t)?'warn':/^(eroding|weak|bad|fail|avoid|sell|cut|risk)\b/i.test(t)?'bad':''; return `<td class="${num?'num':''}${cls}">`+(v?`<span class="verdict ${v}">${inl(c)}</span>`:inl(c))+'</td>'; };
+      out.push('<table><tr>'+cells(rows[0]).map(c=>'<th>'+inl(c)+'</th>').join('')+'</tr>'+rows.slice(1).map(r=>'<tr>'+cells(r).map(td).join('')+'</tr>').join('')+'</table>'); continue; }
     if(/^\d+\. /.test(l)){ let items=[]; while(i<lines.length && /^\d+\. /.test(lines[i])){ items.push(lines[i].replace(/^\d+\. /,'')); i++; } out.push('<ol>'+items.map(x=>'<li>'+inl(x)+'</li>').join('')+'</ol>'); continue; }
     if(/^[-•] /.test(l)){ let items=[]; while(i<lines.length && /^[-•] /.test(lines[i])){ items.push(lines[i].slice(2)); i++; } out.push('<ul>'+items.map(x=>'<li>'+inl(x)+'</li>').join('')+'</ul>'); continue; }
     if(l.trim()===''){ i++; continue; }
