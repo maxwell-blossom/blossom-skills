@@ -45,7 +45,7 @@ for m in MCPS:
     if m.get('creator') == 'blossom' and not m.get('logo'): m['logo'] = 'logo_blossom_flower_256.jpg'   # Blossom MCPs get the flower, like the partner logos
     m['installs'] = 0; m['rating'] = 0; m['ratings'] = 0   # real numbers: nothing is connected or rated yet (Max, Nov 8)
     if m['id'] == 'blossom-trade-data': m['pitch'] = '$500M+ in weekly trade flows from 100K+ investors — crowd flows by ticker, sector, theme, region and portfolio size, updated daily.'   # Max, Nov 8: no 500,000+ here, the data is linked-brokerage only
-    if m['id'] == 'blossom-trade-data': m['price'] = '$29/mo · $249/yr · paid, no free tier'; m['about'] = m['about'].replace('$19/month or $149/year', '$29/month or $249/year') + ' Teams and firms: licensed access (raw flows, higher limits, redistribution) from $2,000/mo — partnerships@blossomsocial.com.'   # Max, Nov 8: $29/mo
+    if m['id'] == 'blossom-trade-data': m['price'] = '$29/mo · $249/yr · paid, no free tier'; m['about'] = m['about'].replace('$19/month or $149/year', '$29/month or $249/year')   # Max, Nov 8: $29/mo · $249/yr (no firms tier on the page for now)
     if m.get('logo'): m['logo_b64'] = base64.b64encode(open(os.path.join(OUT, 'assets', m['logo']), 'rb').read()).decode()
 
 # write SKILL.md files for the curl install
