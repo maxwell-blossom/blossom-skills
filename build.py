@@ -44,6 +44,7 @@ for m in MCPS:
     if m['id'] == 'blossom-connector': m['price'] = 'Free with PRO+ · included with Blossom PRO+'
     if m.get('creator') == 'blossom' and not m.get('logo'): m['logo'] = 'logo_blossom_flower_256.jpg'   # Blossom MCPs get the flower, like the partner logos
     m['installs'] = 0; m['rating'] = 0; m['ratings'] = 0   # real numbers: nothing is connected or rated yet (Max, Nov 8)
+    if m['id'] == 'blossom-trade-data': m['pitch'] = '$500M+ in weekly trade flows from 100K+ investors — crowd flows by ticker, sector, theme, region and portfolio size, updated daily.'   # Max, Nov 8: no 500,000+ here, the data is linked-brokerage only
     if m.get('logo'): m['logo_b64'] = base64.b64encode(open(os.path.join(OUT, 'assets', m['logo']), 'rb').read()).decode()
 
 # write SKILL.md files for the curl install
@@ -74,7 +75,7 @@ JS = '\n'.join(open(os.path.join(SRC, 'js', f), encoding='utf-8').read() for f i
 
 FAQ = [
   ("What is a skill?", "A skill is a small text file (SKILL.md) that teaches an AI assistant how to do one job well. For example: grade your income portfolio against a creator’s written rules, or read space stocks the way one investor does.\n\nYou download it once and add it to Claude, ChatGPT, Grok or Cursor. From then on you can ask for it in plain words.\n\nSkills on Blossom are written by investors, so they carry that investor’s judgment, not generic advice."),
-  ("What is an MCP?", "MCP (Model Context Protocol) is the open standard that lets an AI assistant connect to outside data and tools. An MCP server is what gives a skill its data.\n\nThe Blossom Connector gives your assistant read access to your portfolio, trades and the posts you follow. Blossom Aggregate Trade Data shows what 500,000+ investors are buying and selling. Brokerage MCPs from Public, Questrade, Robinhood, Webull, moomoo, IBKR and Alpaca connect your account directly.\n\nYou connect an MCP once and every skill that needs it just works."),
+  ("What is an MCP?", "MCP (Model Context Protocol) is the open standard that lets an AI assistant connect to outside data and tools. An MCP server is what gives a skill its data.\n\nThe Blossom Connector gives your assistant read access to your portfolio, trades and the posts you follow. Blossom Aggregate Trade Data shows $500M+ in weekly trade flows from 100K+ investors. Brokerage MCPs from Public, Questrade, Robinhood, Webull, moomoo, IBKR and Alpaca connect your account directly.\n\nYou connect an MCP once and every skill that needs it just works."),
   ("Which AI assistants do these work with?", "Claude (desktop, web and Claude Code), ChatGPT, Grok and Cursor.\n\nEach skill page has install steps for all of them, and each MCP page has the connector URL or command for all of them."),
   ("Is it free?", "Many skills are free. Creators can also charge one-time, monthly or yearly; there are no free trials.\n\nThe Blossom Connector MCP is included with Blossom PRO+. Blossom keeps 20% of each paid sale and pays creators the rest monthly."),
   ("Can I publish my own skill?", "Yes — anyone with a Blossom account can post a skill.\n\nUpload your SKILL.md, add a pitch, a sample output and screenshots, pick a price, and it goes live in the library."),
@@ -157,7 +158,7 @@ def ssr_mcp(m):
             + '<p>Connects to Claude, ChatGPT, Grok and Cursor. <a href="/mcps">All MCPs</a></p></div>')
 
 HOME_T = 'Blossom Skills & MCPs — the skills marketplace for investors (Claude, ChatGPT, Grok, Cursor)'
-HOME_D = 'Blossom Skills & MCPs is a skills marketplace for investors: download investing skills and connect MCPs that give Claude, ChatGPT, Grok and Cursor access to your portfolio, trades and what 500,000+ Blossom investors are doing. Built by verified investors on Blossom.'
+HOME_D = 'Blossom Skills & MCPs is a skills marketplace for investors: download investing skills and connect MCPs that give Claude, ChatGPT, Grok and Cursor access to your portfolio, trades and $500M+ in weekly trade flows from 100K+ Blossom investors. Built by verified investors on Blossom.'
 open(os.path.join(OUT, 'index.html'), 'w').write(page(HOME_T, HOME_D, SITE + '/'))
 # one static page per seeded skill and per MCP, so each tile is its own indexable URL (skills posted later are rendered by netlify/functions/page.mjs).
 # Written as <id>.html (not <id>/index.html) so Netlify's pretty URLs serve /skill/<id> directly without a 301 to a trailing slash.
