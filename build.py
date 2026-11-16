@@ -71,7 +71,7 @@ for s in SKILLS:
     else:
         SKILLS_OUT.append(dict(s, skill=preview(s['skill']), paid_preview=True))
 
-DATA = json.dumps(dict(creators=CREATORS, mcps=MCPS, skills=SKILLS_OUT, site=SITE, base=BASE, hero=[v for _, v in HERO]), ensure_ascii=False)
+DATA = json.dumps(dict(creators=CREATORS, mcps=MCPS, skills=SKILLS_OUT, site=SITE, base=BASE, app=APP, hero=[v for _, v in HERO]), ensure_ascii=False)
 
 SRC = os.path.join(OUT, "src")
 CSS = open(os.path.join(SRC, 'style.css'), encoding='utf-8').read()

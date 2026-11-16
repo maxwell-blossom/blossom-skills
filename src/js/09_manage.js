@@ -1,6 +1,9 @@
 // ---------- manage (creator view)
+// The dashboard is the creator's own: posted from this browser, or listed under the signed-in user's Blossom account.
+const ownsSkill = s => !!(s.mine || (ME && creator(s.creator)?.user_id === ME.userId));
 function manage(id){
   const s=skill(id); if(!s) return library();
+  if(!ownsSkill(s)) return `<div class="wrap">${pageHead('Skills','/')}<div class="empty">Only the creator of ${esc(s.name)} can manage it. <a href="${BASE}/skill/${s.id}">View the listing</a></div></div>`;
   const subs = s.mine? 0 : Math.round(s.downloads*(s.price.free?0:0.18));
   const mrr = s.price.free?0: subs*(s.price.monthly||((s.price.yearly||s.price.once||0)/12));
   return `<div class="wrap">${pageHead('Skills','/')}
@@ -15,10 +18,10 @@ function manage(id){
       <div class="card buy"><b style="color:var(--ink)">Payouts</b><div class="small" style="margin:6px 0 10px">Paid by Blossom · monthly, on the 1st · ${s.payout?.email?`${s.payout.method==='paypal'?'PayPal':'e-Transfer'} to ${esc(s.payout.email.replace(/^(.).+(@.+)$/,'$1…$2'))}`:'no payout details yet'}</div><button class="pill sec sm" style="width:100%">${s.payout?.email?'Change payout details':'Add payout details'}</button></div></div></div></div>`;
 }
 function bindManage(id){
-  const s=skill(id); if(!s) return; bindCopy();
+  const s=skill(id); if(!s || !ownsSkill(s)) return; bindCopy();
   $('#pub').onclick=()=>{ const v=$('#ver').value.trim(), n=$('#note').value.trim(); if(!n){ toast('Say what changed'); return; }
     const local=()=>{ const m=mine(); const i=m.findIndex(x=>x.id===id); const today=new Date().toISOString().slice(0,10); if(i>=0){ m[i].log.unshift([v,today,n]); m[i].version=v; LS.set('mine',m); } else { s.log.unshift([v,today,n]); s.version=v; } toast('Update published · '+(s.price.free?'followers':'subscribers')+' notified'); route(); };
-    if(s.mine) post('update',{skill:id, creator:s.creator, version:v, note:n}).then(local).catch(err=>toast('Could not publish the update: '+err.message)); else local(); };
+    if(s.mine) post('update',{skill:id, user_id:ME.userId, version:v, note:n}).then(local).catch(err=>toast('Could not publish the update: '+err.message)); else local(); };
 }
 
 route();

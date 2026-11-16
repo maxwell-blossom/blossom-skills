@@ -1,7 +1,10 @@
-// ---------- checkout (Stripe Checkout via /.netlify/functions/checkout; prices come from the database)
-function checkout(s, plan){
-  askEmail('Checkout · '+s.name, (plan==='once'?'Buy for ':'Subscribe · ')+money(s.price[plan])+(plan==='monthly'?'/mo':plan==='yearly'?'/yr':''), async(email)=>{
-    const j=await post('checkout',{skill:s.id, plan, email}); if(!j.url) throw new Error('No checkout URL returned'); location.href=j.url; await new Promise(()=>{}); });
+// ---------- checkout (Stripe Checkout via <BASE>/api/checkout; prices come from the database)
+// Purchases belong to the signed-in Blossom user; the account email is the receipt address, and the prompt only appears when it has none.
+async function checkout(s, plan){
+  const me=await requireMe(); if(!me) return;
+  const start=async(email)=>{ const j=await post('checkout',{skill:s.id, plan, email, user_id:me.userId}); if(!j.url) throw new Error('No checkout URL returned'); LS.set('email',email); location.href=j.url; await new Promise(()=>{}); };
+  if(emailOk(me.email)){ start(me.email).catch(err=>toast(err.message)); return; }
+  askEmail('Checkout · '+s.name, (plan==='once'?'Buy for ':'Subscribe · ')+money(s.price[plan])+(plan==='monthly'?'/mo':plan==='yearly'?'/yr':''), start);
 }
 function success(id, plan){
   const s=skill(id); if(!s) return library();

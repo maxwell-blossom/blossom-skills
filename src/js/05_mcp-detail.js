@@ -37,6 +37,6 @@ function bindMcp(id){
   const m=mcp(id);
   document.querySelectorAll('[data-mtab]').forEach(b=>b.onclick=()=>{ state.itab=b.dataset.mtab; route(); });
   bindCopy();
-  $('#connect').onclick=()=>{ if(m.creator){ askEmail('Join the waitlist for '+m.name, 'Join the waitlist', async(e)=>{ await post('waitlist',{email:e, mcp:m.id}); toast('You’re on the list — we’ll email you when it opens'); }, 'We’ll email you once it launches!'); return; } if(m.signup){ window.open(m.signup,'_blank','noopener'); return; } if(!m.creator){ copy(m.url.split('  ')[0], 'Install command copied'); return; } copy(m.url, 'Connector URL copied — paste it in Claude → Settings → Connectors'); };
+  $('#connect').onclick=async()=>{ if(m.creator){ const me=await requireMe(); if(!me) return; const join=async(e)=>{ await post('waitlist',{email:e, user_id:me.userId, mcp:m.id}); toast('You’re on the list — we’ll email you when it opens'); }; if(emailOk(me.email)) join(me.email).catch(err=>toast(err.message)); else askEmail('Join the waitlist for '+m.name, 'Join the waitlist', join, 'We’ll email you once it launches!'); return; } if(m.signup){ window.open(m.signup,'_blank','noopener'); return; } if(!m.creator){ copy(m.url.split('  ')[0], 'Install command copied'); return; } copy(m.url, 'Connector URL copied — paste it in Claude → Settings → Connectors'); };
   document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',e=>{ if(e.target.closest('a,button')) return; go(el.dataset.go); }));
 }

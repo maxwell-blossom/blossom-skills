@@ -10,7 +10,7 @@ export default async (req) => {
   const email = (cs.customer_details?.email || cs.customer_email || '').toLowerCase();
   if (!skill || !email) return bad('Session has no skill or email');
   const sb = db();
-  await sb.from('purchases').upsert({ skill_id: skill, plan, buyer_email: email, stripe_session_id: cs.id, stripe_customer_id: cs.customer || null, stripe_subscription_id: cs.subscription || null, amount_cents: cs.amount_total, currency: cs.currency, status: 'active' }, { onConflict: 'stripe_session_id' });
+  await sb.from('purchases').upsert({ skill_id: skill, plan, buyer_email: email, buyer_user_id: cs.metadata?.user_id || null, stripe_session_id: cs.id, stripe_customer_id: cs.customer || null, stripe_subscription_id: cs.subscription || null, amount_cents: cs.amount_total, currency: cs.currency, status: 'active' }, { onConflict: 'stripe_session_id' });
   const { data: s } = await sb.from('skills').select('id,name').eq('id', skill).single();
   return json({ skill, plan, email, name: s?.name, token: sign(skill, email) });
 };

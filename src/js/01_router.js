@@ -12,6 +12,8 @@ function route(){
   document.body.classList.toggle('on-learn', parts[0]==='learn');
   window.scrollTo(0,0);
   const app = $('#app');
+  // Posting and the creator dashboard act for the signed-in Blossom user.
+  if((parts[0]==='post'||parts[0]==='manage') && !ME){ app.innerHTML='<div class="wrap"><div class="empty">Loading…</div></div>'; meReady.then(me=>me?route():signIn()); return; }
   if(parts[0]==='' ){ state.tab='skills'; app.innerHTML=library(); bindLibrary(); }
   else if(parts[0]==='terms'){ app.innerHTML=terms(); }
   else if(parts[0]==='examples'){ state.tab='examples'; app.innerHTML=library(); bindLibrary(); }

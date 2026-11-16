@@ -14,7 +14,7 @@ export default async (req) => {
     const [skill, plan] = (cs.client_reference_id || '').split(':');
     if (skill && plan && cs.payment_status === 'paid') {
       await sb.from('purchases').upsert({
-        skill_id: skill, plan, buyer_email: (cs.customer_details?.email || cs.customer_email || '').toLowerCase(),
+        skill_id: skill, plan, buyer_email: (cs.customer_details?.email || cs.customer_email || '').toLowerCase(), buyer_user_id: cs.metadata?.user_id || null,
         stripe_session_id: cs.id, stripe_customer_id: cs.customer || null, stripe_subscription_id: cs.subscription || null,
         amount_cents: cs.amount_total, currency: cs.currency, status: 'active',
       }, { onConflict: 'stripe_session_id' });

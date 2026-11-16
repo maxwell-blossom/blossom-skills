@@ -122,3 +122,8 @@ create table if not exists waitlist (
   unique (email, mcp)
 );
 alter table waitlist enable row level security;
+-- Blossom user ids (Nov 16): www.blossomsocial.com/skills proxies this site and the web app says who is signed in.
+alter table creators add column if not exists user_id text unique;
+alter table purchases add column if not exists buyer_user_id text;
+create index if not exists purchases_buyer_user on purchases (buyer_user_id, skill_id);
+alter table waitlist add column if not exists user_id text;

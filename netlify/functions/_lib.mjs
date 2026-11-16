@@ -5,6 +5,8 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 
 // Public base URL: the Blossom web app proxies www.blossomsocial.com/skills/* to this site.
 export const SITE = process.env.SITE_URL || 'https://www.blossomsocial.com/skills';
+// The Blossom user id the page sends: from the web app's identity endpoint, unsigned (accepted for V1).
+export const userId = (v) => (typeof v === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(v) ? v : null);
 export const TAKE = 0.20;
 
 export function db() {

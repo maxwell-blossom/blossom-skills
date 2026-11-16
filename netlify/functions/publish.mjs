@@ -1,17 +1,21 @@
-// POST {creator:{handle,name,email,payout_method,payout_email}, skill:{…}} → creates the creator if needed and the skill, live immediately (no review queue for now — Max, Nov 8).
-import { db, json, bad } from './_lib.mjs';
+// POST {creator:{handle,user_id,name,email,payout_method,payout_email}, skill:{…}} → creates the creator if needed and the skill, live immediately (no review queue for now — Max, Nov 8).
+import { db, json, bad, userId } from './_lib.mjs';
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48);
 const handleSlug = (s) => s.toLowerCase().replace(/^@/, '').replace(/[^a-z0-9._-]/g, '').slice(0, 32);   // Blossom handles keep dots and underscores (anthony.invests, tfsa_tina)
 export default async (req) => {
   if (req.method !== 'POST') return bad('POST only', 405);
   const body = await req.json().catch(() => ({}));
   const c = body.creator || {}, k = body.skill || {};
-  if (!c.handle || !k.name || !k.skill_md) return bad('creator.handle, skill.name and skill.skill_md are required');
+  const owner = userId(c.user_id);
+  if (!c.handle || !owner || !k.name || !k.skill_md) return bad('creator.handle, creator.user_id, skill.name and skill.skill_md are required');
   if (/sk_live|sk_test|api[_-]?key\s*[:=]\s*\S{12,}|ghp_[A-Za-z0-9]{20,}/i.test(k.skill_md)) return bad('The SKILL.md looks like it contains a secret. Remove it and try again.');
   const sb = db();
   const handle = handleSlug(c.handle);
   if (!handle) return bad('A Blossom handle is required');
-  const row = { handle, name: c.name || c.handle };
+  // A handle already claimed by another Blossom user stays theirs.
+  const { data: existing } = await sb.from('creators').select('user_id').eq('handle', handle).maybeSingle();
+  if (existing?.user_id && existing.user_id !== owner) return bad('That handle belongs to another Blossom account', 403);
+  const row = { handle, user_id: owner, name: c.name || c.handle };
   if (typeof c.url === 'string' && /^https:\/\/(www\.)?blossomsocial\.com\/\S+$/.test(c.url.trim())) row.url = c.url.trim().slice(0, 200);
   if (c.email) row.email = c.email;
   if (c.payout_method && c.payout_email) { row.payout_method = c.payout_method; row.payout_email = c.payout_email; }
