@@ -55,7 +55,7 @@ function wizard(){
       <div class="f"><label>Before you publish</label><div class="checks">
         <label class="check ${w.tested?'ok':''}"><input type="checkbox" id="tested" ${w.tested?'checked':''}> I ran it in Claude or ChatGPT this week and the sample output is real</label>
         <label class="check ${w.nosecret?'ok':''}"><input type="checkbox" id="nosecret" ${w.nosecret?'checked':''}> No API keys, account numbers or personal data in the file</label>
-        <label class="check ${w.agree?'ok':''}"><input type="checkbox" id="agree" ${w.agree?'checked':''}> I own this content and agree to the <a href="/terms" target="_blank" rel="noopener">Creator terms</a> (20% platform fee${w.model!=='free'?', paid out monthly by Blossom':''})</label>
+        <label class="check ${w.agree?'ok':''}"><input type="checkbox" id="agree" ${w.agree?'checked':''}> I own this content and agree to the <a href="${BASE}/terms" target="_blank" rel="noopener">Creator terms</a> (20% platform fee${w.model!=='free'?', paid out monthly by Blossom':''})</label>
       </div></div>
       <div class="review-ok"><span>🌼</span><div><b>Goes live immediately.</b> Blossom spot-checks new listings after the fact — a skill that places orders must say so, and anything misleading gets unlisted.</div></div>`;
   }

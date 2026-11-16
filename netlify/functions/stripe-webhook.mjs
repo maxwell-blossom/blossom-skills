@@ -24,7 +24,7 @@ export default async (req) => {
       if (email && s) {
         const amt = ((cs.amount_total || 0) / 100).toFixed(2) + ' ' + String(cs.currency || 'cad').toUpperCase();
         const planTxt = plan === 'once' ? 'One-time purchase' : plan === 'monthly' ? 'Monthly subscription' : 'Yearly subscription';
-        const dl = `${SITE}/.netlify/functions/download?skill=${encodeURIComponent(s.id)}&token=${encodeURIComponent(sign(s.id, email))}`;
+        const dl = `${SITE}/api/download?skill=${encodeURIComponent(s.id)}&token=${encodeURIComponent(sign(s.id, email))}`;
         const page = `${SITE}/skill/${s.id}`;
         const prompt = (s.prompts || [])[0] || 'Run ' + s.name;
         const html = `<div style="font-family:Nunito,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#171717;line-height:1.5">

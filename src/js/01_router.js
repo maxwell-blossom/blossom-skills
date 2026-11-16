@@ -26,7 +26,7 @@ function route(){
   else { app.innerHTML=library(); bindLibrary(); }
 }
 window.addEventListener('popstate', route);
-document.addEventListener('click', e => { const b = e.target.closest('a.pback'); if(!b) return; e.preventDefault(); if(window.__navd && history.length > 1) history.back(); else go(b.getAttribute('href')); });
+document.addEventListener('click', e => { const b = e.target.closest('a.pback'); if(!b) return; e.preventDefault(); if(window.__navd && history.length > 1) history.back(); else go(b.getAttribute('href').slice(BASE.length)); });
 // Same-origin links navigate in-app (no reload); new-tab/modified clicks and external links are left alone.
-document.addEventListener('click', e => { const a = e.target.closest('a[href]'); if(!a || a.target || a.hasAttribute('download') || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; const u = new URL(a.href, location.href); if(u.origin !== location.origin || !u.pathname.startsWith(BASE + '/')) return; if(a.getAttribute('href') === '#') { e.preventDefault(); return; } e.preventDefault(); go(u.pathname.slice(BASE.length) + u.search); });
+document.addEventListener('click', e => { const a = e.target.closest('a[href]'); if(!a || a.target || a.hasAttribute('download') || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; const u = new URL(a.href, location.href); if(u.origin !== location.origin || (u.pathname !== BASE && !u.pathname.startsWith(BASE + '/'))) return; if(a.getAttribute('href') === '#') { e.preventDefault(); return; } e.preventDefault(); go(u.pathname.slice(BASE.length) + u.search); });
 

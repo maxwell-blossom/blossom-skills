@@ -7,7 +7,11 @@ from hero_faces import HERO
 SKILLS = [s for s in SKILLS if s['id'] not in HIDDEN]
 
 OUT = os.path.dirname(os.path.abspath(__file__))
-SITE = 'https://blossom-skills.netlify.app'
+# Served under /skills: www.blossomsocial.com/skills/* is proxied here by the Blossom web app, and
+# this site keeps the same paths so links and redirects resolve the same on either host.
+BASE = os.environ.get('BASE_PATH', '/skills')
+APP = 'https://www.blossomsocial.com'
+SITE = os.environ.get('SITE_ORIGIN', APP) + BASE
 
 logo_b64 = base64.b64encode(open(os.path.join(OUT, 'assets/_blossom_logo.png'), 'rb').read()).decode()
 wall_b64 = base64.b64encode(open(os.path.join(OUT, 'assets/wall_tile.jpg'), 'rb').read()).decode()
@@ -49,7 +53,7 @@ for m in MCPS:
     if m.get('logo'): m['logo_b64'] = base64.b64encode(open(os.path.join(OUT, 'assets', m['logo']), 'rb').read()).decode()
 
 # write SKILL.md files for the curl install
-# Free skills are served statically; paid SKILL.md lives only in Supabase and comes through /.netlify/functions/download with a purchase token.
+# Free skills are served statically; paid SKILL.md lives only in Supabase and comes through <BASE>/api/download with a purchase token.
 def preview(md):
     head, _, rest = md.partition('\n---\n')
     body = rest.strip().split('\n')
@@ -65,7 +69,6 @@ for s in SKILLS:
     else:
         SKILLS_OUT.append(dict(s, skill=preview(s['skill']), paid_preview=True))
 
-BASE = os.environ.get('BASE_PATH', '')   # '' on Netlify; '/skillsandmcps' when it moves under blossomsocial.com
 DATA = json.dumps(dict(creators=CREATORS, mcps=MCPS, skills=SKILLS_OUT, site=SITE, base=BASE, hero=[v for _, v in HERO]), ensure_ascii=False)
 
 SRC = os.path.join(OUT, "src")
@@ -83,7 +86,7 @@ FAQ = [
   ("Do skills place trades?", "Only if the creator turns on “This skill can place orders”, and then the listing says so.\n\nEverything else reads your data and explains, screens or alerts. The Blossom Connector itself never places trades."),
 ]
 jsonld = [
-  {"@context": "https://schema.org", "@type": "WebSite", "name": "Blossom Skills & MCPs", "alternateName": "Blossom skills marketplace", "url": SITE + "/", "publisher": {"@type": "Organization", "name": "Blossom Social", "url": "https://www.blossomsocial.com/"}},
+  {"@context": "https://schema.org", "@type": "WebSite", "name": "Blossom Skills & MCPs", "alternateName": "Blossom skills marketplace", "url": SITE, "publisher": {"@type": "Organization", "name": "Blossom Social", "url": "https://www.blossomsocial.com/"}},
   {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a.replace("\n\n", " ")}} for q, a in FAQ]},
   {"@context": "https://schema.org", "@type": "ItemList", "name": "Skills for investors", "itemListElement": [
       {"@type": "ListItem", "position": i + 1, "item": {"@type": "SoftwareApplication", "name": s_['name'], "description": s_['pitch'], "url": f"{SITE}/skill/{s_['id']}", "applicationCategory": "FinanceApplication", "operatingSystem": "Claude, ChatGPT, Grok, Cursor",
@@ -104,10 +107,10 @@ LEARN = ('<section class="learn" id="learn"><div class="wrap">'
   '</div>'
   '<h2 style="margin-top:28px">Questions</h2>'
   '<div class="learn-grid">' + ''.join(f'<article><h3>{_p(q)}</h3>' + ''.join(f'<p>{_p(x)}</p>' for x in a.split('\n\n')) + '</article>' for q, a in FAQ) + '</div>'
-  '<p class="small" style="margin-top:22px">Want to publish? <a href="/post">Post a skill</a> · <a href="/terms">Creator terms</a> · Built an MCP investors would use? <a href="mailto:partnerships@blossomsocial.com?subject=MCP%20listing%20on%20Blossom%20Skills">Tell us</a>.</p>'
+  f'<p class="small" style="margin-top:22px">Want to publish? <a href="{BASE}/post">Post a skill</a> · <a href="{BASE}/terms">Creator terms</a> · Built an MCP investors would use? <a href="mailto:partnerships@blossomsocial.com?subject=MCP%20listing%20on%20Blossom%20Skills">Tell us</a>.</p>'
   '</div></section>')
 # llms.txt: the plain-text version of the catalogue for AI assistants and crawlers
-llms = ['# Blossom Skills & MCPs', '', '> A skills marketplace for investors: investing skills (SKILL.md files) and MCP servers for Claude, ChatGPT, Grok and Cursor, built by verified investors on Blossom Social. ' + SITE + '/', '', '## What they are', '']
+llms = ['# Blossom Skills & MCPs', '', '> A skills marketplace for investors: investing skills (SKILL.md files) and MCP servers for Claude, ChatGPT, Grok and Cursor, built by verified investors on Blossom Social. ' + SITE, '', '## What they are', '']
 llms += [f'- {q} {a.replace(chr(10)+chr(10), " ")}' for q, a in FAQ]
 llms += ['', '## Skills', ''] + [f'- [{s_["name"]}]({SITE}/skill/{s_["id"]}) by {CREATORS[s_["creator"]]["name"]} (@{s_["creator"]}): {s_["pitch"]} Price: {"free" if s_["price"].get("free") else ", ".join(f"{k} ${v}" for k, v in s_["price"].items())}.' for s_ in SKILLS]
 llms += ['', '## MCPs', ''] + [f'- [{m["name"]}]({SITE}/mcp/{m["id"]}): {m["pitch"]}' for m in MCPS if not m.get('compat')]
@@ -128,18 +131,18 @@ def page(title, desc, url, extra_ld='', app=''):
 <meta property="og:image" content="{SITE}/og.jpg"><meta property="og:image:secure_url" content="{SITE}/og.jpg"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:alt" content="Blossom Skills &amp; MCPs"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:site_name" content="Blossom Skills">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{t}"><meta name="twitter:description" content="{d}"><meta name="twitter:image" content="{SITE}/og.jpg">
 {JSONLD}{extra_ld}
-<link rel="icon" href="/favicon.jpg">
+<link rel="icon" href="{BASE}/favicon.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>{CSS.replace('__WALL__', wall_b64)}</style></head>
 <body>
-<div class="appbar"><a class="logo" href="/"><img src="data:image/png;base64,{logo_b64}" alt="Blossom"></a><span class="sp"></span>
+<div class="appbar"><a class="logo" href="{BASE}"><img src="data:image/png;base64,{logo_b64}" alt="Blossom"></a><span class="sp"></span>
 <a class="pill sec" href="https://www.blossomsocial.com/" target="_blank" rel="noopener" style="background:var(--bg);display:inline-flex;align-items:center;gap:8px"><svg viewBox="0 0 16 16" style="width:15px;height:15px;fill:currentColor"><rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.2"/><rect x="2" y="9" width="5" height="5" rx="1.2"/><rect x="9" y="9" width="5" height="5" rx="1.2"/></svg>Get App</a>
 <a class="pill pri" href="https://www.blossomsocial.com/" target="_blank" rel="noopener" style="margin-left:12px">Sign up</a></div>
 <div class="shell">{SIDEBAR}
 <div class="main"><div id="app">{app}</div>
 {LEARN}
-<footer>Blossom Skills · V1 preview · <a href="/post">Post a skill</a> · <a href="/examples">Skill examples</a> · <a href="/mcps">MCPs</a> · <a href="/learn">How it works</a> · <a href="https://www.blossomsocial.com/" target="_blank" rel="noopener">blossomsocial.com</a></footer></div></div>
+<footer>Blossom Skills · V1 preview · <a href="{BASE}/post">Post a skill</a> · <a href="{BASE}/examples">Skill examples</a> · <a href="{BASE}/mcps">MCPs</a> · <a href="{BASE}/learn">How it works</a> · <a href="https://www.blossomsocial.com/" target="_blank" rel="noopener">blossomsocial.com</a></footer></div></div>
 <script>{JS.replace('__DATA__', DATA).replace('__BROKERS__', BROKERS_JS).replace('__BEEVIS__', beevis_b64).replace('__FLOWER__', flower_b64).replace('__BADGE__', badge_b64)}</script>
 </body></html>"""
 
@@ -151,20 +154,20 @@ def ssr_skill(s_):
     return (f'<div class="wrap"><h1>{_p(s_["name"])}</h1><p>{_p(s_["pitch"])}</p><p>By {_p(c["name"])} (@{_p(s_["creator"])}) on Blossom · {_p(price)} · v{_p(s_["version"])} · updated {_p(s_["updated"])}</p>'
             + '<ul>' + ''.join(f'<li>{_p(h)}</li>' for h in (s_.get('highlights') or [])) + '</ul>'
             + (f'<p>Needs: {_p(reqs)}.</p>' if reqs else '') + '<p>Try: ' + ' · '.join(f'“{_p(x)}”' for x in s_['prompts']) + '</p>'
-            + '<p>Works in Claude, ChatGPT, Grok and Cursor. <a href="/">All skills</a></p></div>')
+            + f'<p>Works in Claude, ChatGPT, Grok and Cursor. <a href="{BASE}">All skills</a></p></div>')
 
 def ssr_mcp(m):
     return (f'<div class="wrap"><h1>{_p(m["name"])}</h1><p>{_p(m["pitch"])}</p><p>{_p(m.get("about",""))}</p>'
             + '<ul>' + ''.join(f'<li><b>{_p(t)}</b> — {_p(d)}</li>' for t, d in m['tools']) + '</ul>'
-            + '<p>Connects to Claude, ChatGPT, Grok and Cursor. <a href="/mcps">All MCPs</a></p></div>')
+            + f'<p>Connects to Claude, ChatGPT, Grok and Cursor. <a href="{BASE}/mcps">All MCPs</a></p></div>')
 
 HOME_T = 'Blossom Skills & MCPs — the skills marketplace for investors (Claude, ChatGPT, Grok, Cursor)'
 HOME_D = 'Blossom Skills & MCPs is a skills marketplace for investors: download investing skills and connect MCPs that give Claude, ChatGPT, Grok and Cursor access to your portfolio, trades and $500M+ in weekly trade flows from 100K+ Blossom investors. Built by verified investors on Blossom.'
-open(os.path.join(OUT, 'index.html'), 'w').write(page(HOME_T, HOME_D, SITE + '/'))
+open(os.path.join(OUT, 'index.html'), 'w').write(page(HOME_T, HOME_D, SITE))
 # one static page per seeded skill and per MCP, so each tile is its own indexable URL (skills posted later are rendered by netlify/functions/page.mjs).
 # Written as <id>.html (not <id>/index.html) so Netlify's pretty URLs serve /skill/<id> directly without a 301 to a trailing slash.
 PAGES = os.path.join(OUT, 'pages'); import shutil; shutil.rmtree(PAGES, ignore_errors=True)
-urls = [SITE + '/', SITE + '/mcps', SITE + '/examples', SITE + '/learn', SITE + '/post', SITE + '/terms']
+urls = [SITE, SITE + '/mcps', SITE + '/examples', SITE + '/learn', SITE + '/post', SITE + '/terms']
 for s_ in SKILLS:
     c = CREATORS[s_['creator']]
     ld = '<script type="application/ld+json">' + json.dumps({"@context": "https://schema.org", "@type": "SoftwareApplication", "name": s_['name'], "description": s_['pitch'], "url": f"{SITE}/skill/{s_['id']}", "applicationCategory": "FinanceApplication", "operatingSystem": "Claude, ChatGPT, Grok, Cursor", "author": {"@type": "Person", "name": c['name']}, "softwareVersion": s_['version'], "dateModified": s_['updated'], "offers": {"@type": "Offer", "price": "0" if s_['price'].get('free') else str(s_['price'].get('monthly') or s_['price'].get('yearly') or s_['price'].get('once')), "priceCurrency": "CAD"}}, ensure_ascii=False) + '</script>'
@@ -185,7 +188,8 @@ for route_ in ('mcps', 'examples', 'learn', 'post', 'terms'):
               'terms': ('Creator terms — Blossom Skills', 'Terms for publishing and selling skills on Blossom Skills: ownership, the 20% platform fee, monthly payouts, updates, refunds and removal.')}
     open(os.path.join(PAGES, route_ + '.html'), 'w').write(page(titles[route_][0], titles[route_][1], f"{SITE}/{route_}"))
 open(os.path.join(OUT, 'sitemap.xml'), 'w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + ''.join(f'<url><loc>{u}</loc></url>' for u in urls) + '</urlset>\n')
-open(os.path.join(OUT, 'robots.txt'), 'w').write(f'User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\nSitemap: {SITE}/.netlify/functions/sitemap\n')
-# Netlify: static pages win; skills published later (no static page) are rendered by the page function; everything else is the SPA shell.
-open(os.path.join(OUT, '_redirects'), 'w').write('/skill/*  /.netlify/functions/page  200\n/mcp/*  /index.html  200\n/u/*  /index.html  200\n/manage/*  /index.html  200\n/success/*  /index.html  200\n/*  /index.html  200\n')
+open(os.path.join(OUT, 'robots.txt'), 'w').write(f'User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\nSitemap: {SITE}/api/sitemap\n')
+# Netlify: static pages win; functions are under <BASE>/api so the web app's proxy reaches them; skills published later (no static page)
+# are rendered by the page function; everything else under <BASE> is the SPA shell (<BASE>.html, so /skills needs no trailing-slash 301).
+open(os.path.join(OUT, '_redirects'), 'w').write(f'/  {BASE}  301\n{BASE}/api/*  /.netlify/functions/:splat  200\n{BASE}/skill/*  /.netlify/functions/page  200\n{BASE}/*  {BASE}.html  200\n')
 print('index.html', round(len(open(os.path.join(OUT, 'index.html')).read())/1024), 'KB;', len(SKILLS), 'skills,', len(MCPS), 'mcps;', len(urls), 'urls in sitemap')

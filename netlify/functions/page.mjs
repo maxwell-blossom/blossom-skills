@@ -1,15 +1,16 @@
-// GET /skill/<id> for skills that have no static page (posted through the site after the last build).
+// GET /skills/skill/<id> for skills that have no static page (posted through the site after the last build).
 // Takes the built index.html, swaps in the skill's title/description/canonical/JSON-LD and a crawler-visible summary; the SPA then renders the full page.
 import { db, SITE } from './_lib.mjs';
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 let shell = null, shellAt = 0;
 async function getShell() {
   if (shell && Date.now() - shellAt < 300000) return shell;
-  const r = await fetch(`${SITE}/index.html`); shell = await r.text(); shellAt = Date.now(); return shell;
+  // This host's own shell (Netlify's URL), not the public one: that would loop through the web app's proxy.
+  const r = await fetch(`${process.env.URL || 'https://blossom-skills.netlify.app'}/skills.html`); shell = await r.text(); shellAt = Date.now(); return shell;
 }
 export default async (req) => {
   const u = new URL(req.url);
-  const id = decodeURIComponent(u.pathname.replace(/^\/skill\//, '').replace(/\/$/, ''));
+  const id = decodeURIComponent(u.pathname.replace(/^\/skills\/skill\//, '').replace(/\/$/, ''));
   const html = await getShell();
   const spa = () => new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
   if (!id) return spa();
@@ -22,7 +23,7 @@ export default async (req) => {
   const url = `${SITE}/skill/${s.id}`;
   const price = s.price?.free ? 'Free' : Object.entries(s.price || {}).map(([k, v]) => `$${v} ${k}`).join(' · ');
   const ld = { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: s.name, description: s.pitch, url, applicationCategory: 'FinanceApplication', operatingSystem: 'Claude, ChatGPT, Grok, Cursor', author: { '@type': 'Person', name: who }, softwareVersion: s.version, dateModified: (s.updated_at || '').slice(0, 10), offers: { '@type': 'Offer', price: s.price?.free ? '0' : String(s.price?.monthly || s.price?.yearly || s.price?.once || 0), priceCurrency: 'CAD' } };
-  const app = `<div class="wrap"><h1>${esc(s.name)}</h1><p>${esc(s.pitch)}</p><p>By ${esc(who)} (@${esc(s.creator)}) on Blossom · ${esc(price)} · v${esc(s.version)}</p><ul>${(s.highlights || []).map((h) => `<li>${esc(h)}</li>`).join('')}</ul><p>Try: ${(s.prompts || []).map((p) => `“${esc(p)}”`).join(' · ')}</p><p>Works in Claude, ChatGPT, Grok and Cursor. <a href="/">All skills</a></p></div>`;
+  const app = `<div class="wrap"><h1>${esc(s.name)}</h1><p>${esc(s.pitch)}</p><p>By ${esc(who)} (@${esc(s.creator)}) on Blossom · ${esc(price)} · v${esc(s.version)}</p><ul>${(s.highlights || []).map((h) => `<li>${esc(h)}</li>`).join('')}</ul><p>Try: ${(s.prompts || []).map((p) => `“${esc(p)}”`).join(' · ')}</p><p>Works in Claude, ChatGPT, Grok and Cursor. <a href="/skills">All skills</a></p></div>`;
   let out = html
     .replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`)
     .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${esc(s.pitch)}">`)

@@ -1,4 +1,4 @@
-// GET /.netlify/functions/catalogue → live skills + creators + update log. Paid skills get a SKILL.md preview, never the full file.
+// GET /skills/api/catalogue → live skills + creators + update log. Paid skills get a SKILL.md preview, never the full file.
 import { db, json } from './_lib.mjs';
 const preview = (md) => { const [head, , rest] = splitFront(md); const lines = (rest || '').trim().split('\n'); return head + '\n---\n' + lines.slice(0, 8).join('\n') + '\n\n… the full SKILL.md (' + md.split('\n').length + ' lines) unlocks after purchase.'; };
 function splitFront(md) { const i = md.indexOf('\n---\n'); return i < 0 ? [md, '', ''] : [md.slice(0, i), '', md.slice(i + 5)]; }

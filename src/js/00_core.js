@@ -1,8 +1,8 @@
 const D = __DATA__;
-const BASE = D.base || '';   // '' on blossom-skills.netlify.app; '/skillsandmcps' once it lives on blossomsocial.com
+const BASE = D.base;   // '/skills': the path the Blossom web app proxies to this site
 function go(path){ history.pushState(null, '', BASE + path); window.__navd=true; route(); }
 D.remote = [];   // skills published through the site and approved (status=live in Supabase); loaded by loadCatalogue()
-const shotUrl = f => /^https?:|^data:/.test(f) ? f : 'shots/' + f;
+const shotUrl = f => /^https?:|^data:/.test(f) ? f : BASE + '/shots/' + f;
 async function loadCatalogue(){
   try {
     const j = await api('catalogue');
@@ -24,8 +24,8 @@ const IC = {
   back: I('<path d="M15 18l-6-6 6-6"/>'),
   puzzle: I('<path d="M10 3h4v3a2 2 0 1 0 4 0h3v4h-3a2 2 0 1 0 0 4h3v4h-3a2 2 0 1 0-4 0v3h-4v-3a2 2 0 1 0-4 0H3v-4h3a2 2 0 1 0 0-4H3V6h3a2 2 0 1 0 4 0z"/>'), refresh: I('<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/>'), x: I('<path d="M18 6L6 18M6 6l12 12"/>'), circle: I('<circle cx="12" cy="12" r="8"/>'),
 };
-// ---- Backend: Netlify functions in front of Supabase + Stripe Checkout (see netlify/functions/).
-const API = '/.netlify/functions/';
+// ---- Backend: Netlify functions in front of Supabase + Stripe Checkout (see netlify/functions/), under BASE so the proxy reaches them.
+const API = BASE + '/api/';
 async function api(name, opts){ const r = await fetch(API+name, opts); let j; try{ j = await r.json(); }catch(e){ j = {error: await r.text().catch(()=>'')||('HTTP '+r.status)}; } if(!r.ok) throw new Error(j.error || j.errorMessage || ('HTTP '+r.status)); return j; }
 const post = (name, body) => api(name, {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body)});
 const tokens = () => LS.get('tokens', {});
@@ -71,7 +71,7 @@ const creator = h => D.creators[h];
 const owned = () => LS.get('owned', {});
 
 // Page header in the Blossom app style: round back button on the left, title (and a line under it) centred.
-function pageHead(label, back){ return `<div class="phead"><a class="pback" href="${back}" aria-label="Back">${IC.back}</a><a class="pbl" href="${back}">${esc(label)}</a></div>`; }
+function pageHead(label, back){ return `<div class="phead"><a class="pback" href="${BASE}${back}" aria-label="Back">${IC.back}</a><a class="pbl" href="${BASE}${back}">${esc(label)}</a></div>`; }
 const isReal = s => !!(s.remote || s.mine);   // published through the site, as opposed to the seeded examples
 function toast(t){ document.querySelectorAll('.toast').forEach(x=>x.remove()); const el=document.createElement('div'); el.className='toast'; el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),2200); }
 function copy(t, msg='Copied'){ navigator.clipboard?.writeText(t).then(()=>toast(msg),()=>toast(msg)); }

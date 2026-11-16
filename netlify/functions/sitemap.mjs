@@ -1,4 +1,4 @@
-// GET /.netlify/functions/sitemap → every live skill in the database (the static sitemap.xml covers the seeded pages and MCPs).
+// GET /skills/api/sitemap → every live skill in the database (the static sitemap.xml covers the seeded pages and MCPs).
 import { db, SITE } from './_lib.mjs';
 export default async () => {
   const { data } = await db().from('skills').select('id,updated_at').eq('status', 'live');

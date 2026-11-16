@@ -16,8 +16,8 @@ export default async (req) => {
     client_reference_id: `${s.id}:${plan}`,
     metadata: { skill: s.id, plan, creator: s.creator },
     line_items: [{ quantity: 1, price_data: { currency: 'cad', unit_amount: cents, product_data: { name: `${s.name} — ${plan === 'once' ? 'one-time' : plan}`, description: `Blossom Skills · by @${s.creator}` }, ...(recurring ? { recurring } : {}) } }],
-    success_url: `${SITE}/?checkout=success&skill=${encodeURIComponent(s.id)}&plan=${plan}&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${SITE}/#/skill/${encodeURIComponent(s.id)}`,
+    success_url: `${SITE}?checkout=success&skill=${encodeURIComponent(s.id)}&plan=${plan}&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${SITE}/skill/${encodeURIComponent(s.id)}`,
     allow_promotion_codes: false,
   });
   return json({ url: session.url });

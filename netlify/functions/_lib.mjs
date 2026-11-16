@@ -3,7 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-export const SITE = process.env.SITE_URL || 'https://blossom-skills.netlify.app';
+// Public base URL: the Blossom web app proxies www.blossomsocial.com/skills/* to this site.
+export const SITE = process.env.SITE_URL || 'https://www.blossomsocial.com/skills';
 export const TAKE = 0.20;
 
 export function db() {
