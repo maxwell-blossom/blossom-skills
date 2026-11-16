@@ -28,21 +28,23 @@ NAV = {k: open(os.path.join(OUT, 'assets/nav', k + '.svg')).read().strip() for k
 beevis_webp = base64.b64encode(open(os.path.join(OUT, 'assets/nav/beevis-sidebar-icon.webp'), 'rb').read()).decode()
 NAV['beevis'] = f'<img src="data:image/webp;base64,{beevis_webp}" alt="" style="width:18px;height:18px">'
 NAV['skills'] = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" d="M8 .9a.7.7 0 0 1 .7.7v1.1h2.3A2.5 2.5 0 0 1 13.5 5.2v6.1a2.5 2.5 0 0 1-2.5 2.5H5a2.5 2.5 0 0 1-2.5-2.5V5.2A2.5 2.5 0 0 1 5 2.7h2.3V1.6A.7.7 0 0 1 8 .9m-3 3.2a1.1 1.1 0 0 0-1.1 1.1v6.1a1.1 1.1 0 0 0 1.1 1.1h6a1.1 1.1 0 0 0 1.1-1.1V5.2A1.1 1.1 0 0 0 11 4.1zm1.2 2.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2m3.6 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2M5.6 9.6h4.8a.6.6 0 0 1 0 1.2H5.6a.6.6 0 0 1 0-1.2M.5 6.4a.7.7 0 0 1 .7.7v2.3a.7.7 0 0 1-1.4 0V7.1a.7.7 0 0 1 .7-.7m15 0a.7.7 0 0 1 .7.7v2.3a.7.7 0 0 1-1.4 0V7.1a.7.7 0 0 1 .7-.7" fill="currentColor"/></svg>'
-TOPICS = [('ETFs','etfs'),('Passive Income','passive_income'),('Beginner Investors','beginnerinvestors'),('Dividends','dividends'),('Market News','marketnews')]
-TOPIC_B64 = {k: base64.b64encode(open(os.path.join(OUT, 'assets/topics', k + '.png'), 'rb').read()).decode() for _, k in TOPICS}
+TOPICS = [('ETFs','etfs','ETFs__TOPIC-1670944602937-vWRwRGXH_kPwalIyp44Z8cCx0'),('Passive Income','passive_income','Passive-Income__TOPIC-1674487154071-KYGXxYR7_kPwalIyp44Z8cCx0'),('Beginner Investors','beginnerinvestors','Beginner-Investors__TOPIC-1670944602937-nfDouV3U_kPwalIyp44Z8cCx0'),('Dividends','dividends','Dividends__TOPIC-1670944602936-RCWbYjlb_kPwalIyp44Z8cCx0'),('Market News','marketnews','Market-News__TOPIC-1670944602936-YItlEti6_kPwalIyp44Z8cCx0')]
+TOPIC_B64 = {k: base64.b64encode(open(os.path.join(OUT, 'assets/topics', k + '.png'), 'rb').read()).decode() for _, k, _ in TOPICS}
 NAV['about'] = open(os.path.join(OUT, 'assets/nav/about.svg')).read().strip()
 NAV['resources'] = open(os.path.join(OUT, 'assets/nav/resources.svg')).read().strip()
+def app_link(path, icon, label, extra=''):
+    return f'<a href="{APP}{path}" target="_blank" rel="noopener"{extra}>{NAV[icon]}{label}</a>'
 SIDEBAR = ('<aside class="sidebar">'
-  f'<a href="#" data-app>{NAV["about"]}About Blossom</a><hr>'
-  f'<a href="#" data-app>{NAV["home"]}Home</a><a href="#" data-app>{NAV["markets"]}Markets</a><a href="#" data-app>{NAV["learn"]}Learn</a><a href="#" data-app>{NAV["portfolio"]}Portfolio</a><a href="#" data-app>{NAV["insights"]}Insights</a><hr>'
-  f'<a href="#" data-app>{NAV["beevis"]}Chat with Beevis</a>'
-  f'<a href="/" class="on">{NAV["skills"]}Skills &amp; MCPs<span class="new">New</span></a><hr>'
-  f'<a href="#" data-app>{NAV["save"]}Saved posts</a><hr>'
-  f'<div class="sec"><span style="display:flex;align-items:center;gap:12px">{NAV["topics"]}Topics</span><svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>'
-  + ''.join(f'<div class="topic"><img src="data:image/png;base64,{TOPIC_B64[k]}" alt="">{n}</div>' for n,k in TOPICS)
-  + f'<div class="sub">See All Topics</div><hr><a href="#" data-app>{NAV["buzz"]}The Weekly Buzz</a><hr>'
-  f'<a href="#" data-app>{NAV["resources"]}Resources</a><div class="sub">Get Help</div>'
-  f'<a href="#" data-app class="bottom" style="color:var(--muted)">{NAV["settings"]}Settings</a></aside>')
+  + app_link('/about', 'about', 'About Blossom') + '<hr>'
+  + app_link('/', 'home', 'Home') + app_link('/markets', 'markets', 'Markets') + app_link('/learn', 'learn', 'Learn') + app_link('/portfolio', 'portfolio', 'Portfolio') + app_link('/insights', 'insights', 'Insights') + '<hr>'
+  + app_link('/beevis', 'beevis', 'Chat with Beevis')
+  + f'<a href="{BASE}" class="on">{NAV["skills"]}Skills &amp; MCPs<span class="new">New</span></a><hr>'
+  + app_link('/bookmark', 'save', 'Saved posts') + '<hr>'
+  + f'<div class="sec"><span style="display:flex;align-items:center;gap:12px">{NAV["topics"]}Topics</span><svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>'
+  + ''.join(f'<a class="topic" href="{APP}/topics/{t}" target="_blank" rel="noopener"><img src="data:image/png;base64,{TOPIC_B64[k]}" alt="">{n}</a>' for n,k,t in TOPICS)
+  + f'<a class="sub" href="{APP}/topics" target="_blank" rel="noopener">See All Topics</a><hr><a href="https://news.blossomsocial.com/" target="_blank" rel="noopener">{NAV["buzz"]}The Weekly Buzz</a><hr>'
+  f'<div class="sub" style="display:flex;align-items:center;gap:12px">{NAV["resources"]}Resources</div><div class="sub">Get Help</div>'
+  + app_link('/settings', 'settings', 'Settings', ' class="bottom" style="color:var(--muted)"') + '</aside>')
 for m in MCPS:
     if m['id'] == 'fiscal-ai': m['price'] = '$65/mo · billed by Fiscal.ai'; m['signup'] = 'https://fiscal.ai/get-started/mcp/user-type/'   # Max, Nov 8
     if m['id'] == 'blossom-connector': m['price'] = 'Free with PRO+ · included with Blossom PRO+'

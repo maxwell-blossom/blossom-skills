@@ -21,6 +21,5 @@ function bindManage(id){
     if(s.mine) post('update',{skill:id, creator:s.creator, version:v, note:n}).then(local).catch(err=>toast('Could not publish the update: '+err.message)); else local(); };
 }
 
-document.querySelectorAll('[data-app]').forEach(a=>a.addEventListener('click',e=>{ e.preventDefault(); toast('That’s the Blossom web app — this preview only has Skills & MCPs'); }));
 route();
 loadCatalogue();
