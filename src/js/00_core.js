@@ -62,7 +62,8 @@ const TAKE = 0.20, STRIPE_PCT = 0.029, STRIPE_FIX = 0.30;
 // Retried once: the first call after the login token expires can 401 while the web app refreshes it.
 let ME = null;
 const meReady = (async()=>{ for(let i=0;i<2;i++){ const r=await fetch('/api/skills/identity',{method:'POST'}).catch(()=>null); if(r&&r.ok){ ME=(await r.json()).user||null; return ME; } if(r&&r.status!==401) break; } return null; })();
-function signIn(){ location.href='/login?redirect='+encodeURIComponent(location.pathname+location.search); }
+// Sign in on the Blossom web app and come back to this page's public URL (the web app serves this site under BASE).
+function signIn(){ location.href=APP+'/login?redirect='+encodeURIComponent(D.site+location.pathname.slice(BASE.length)+location.search); }
 async function requireMe(){ const me=await meReady; if(!me) signIn(); return me; }
 const $ = (s, el=document) => el.querySelector(s);
 const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));

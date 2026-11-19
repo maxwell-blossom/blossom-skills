@@ -271,7 +271,7 @@ footer{padding:0 16px;color:var(--muted)}
 .f label.tog{display:flex;margin-bottom:0}
 .wpanel h2{font-size:24px}.chead h1{font-size:28px}
 .tools td:first-child{width:auto;padding-right:18px}
-.sidebar{width:256px;padding-bottom:0}.sidebar a{padding:13px 12px;font-size:16px}.sidebar a svg,.sidebar .sec svg{width:16px;height:16px}.sidebar a.on{color:var(--teal)}.sidebar hr{margin:12px 4px}.sidebar .sec{font-size:16px;padding:10px 12px}.sidebar .sub{padding:8px 12px 8px 58px;font-weight:600}.sidebar .topic{padding:7px 12px 7px 30px}
+.sidebar{width:256px;padding-bottom:0}.sidebar a{padding:13px 12px;font-size:16px}.sidebar a svg,.sidebar .sec svg,.sidebar .sec img{width:16px;height:16px;flex:none}.sidebar a.on{color:var(--teal)}.sidebar hr{margin:12px 4px}.sidebar .sec{font-size:16px;padding:10px 12px}.sidebar .sub{padding:8px 12px 8px 58px;font-weight:600}.sidebar .topic{padding:7px 12px 7px 30px}
 .sidebar .new{background:var(--beevis);font-size:10px;letter-spacing:0;padding:2px 8px}
 .sidebar .bottom{position:sticky;bottom:0;background:#fff;padding-bottom:18px;margin-top:auto}
 .sidebar .sec .chev{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}

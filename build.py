@@ -43,7 +43,7 @@ SIDEBAR = ('<aside class="sidebar">'
   + f'<div class="sec"><span style="display:flex;align-items:center;gap:12px">{NAV["topics"]}Topics</span><svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>'
   + ''.join(f'<a class="topic" href="{APP}/topics/{t}" target="_blank" rel="noopener"><img src="data:image/png;base64,{TOPIC_B64[k]}" alt="">{n}</a>' for n,k,t in TOPICS)
   + f'<a class="sub" href="{APP}/topics" target="_blank" rel="noopener">See All Topics</a><hr><a href="https://news.blossomsocial.com/" target="_blank" rel="noopener">{NAV["buzz"]}The Weekly Buzz</a><hr>'
-  f'<div class="sub" style="display:flex;align-items:center;gap:12px">{NAV["resources"]}Resources</div><div class="sub">Get Help</div>'
+  f'<div class="sec"><span style="display:flex;align-items:center;gap:12px">{NAV["resources"]}Resources</span></div><div class="sub">Get Help</div>'
   + app_link('/settings', 'settings', 'Settings', ' class="bottom" style="color:var(--muted)"') + '</aside>')
 for m in MCPS:
     if m['id'] == 'fiscal-ai': m['price'] = '$65/mo · billed by Fiscal.ai'; m['signup'] = 'https://fiscal.ai/get-started/mcp/user-type/'   # Max, Nov 8
