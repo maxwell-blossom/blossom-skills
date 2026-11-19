@@ -5,8 +5,12 @@ set -euo pipefail
 [ -d assets ] || base64 -d assets.tgz.b64 | tar xz
 python3 build.py
 python3 gen_seed.py
-rm -rf dist && mkdir -p dist
-cp index.html dist/ && cp -r skills dist/skills && cp -r assets/shots dist/shots && cp assets/og.jpg dist/og.jpg && cp assets/logo_blossom_flower_256.jpg dist/favicon.jpg
+# Everything lives under /skills (the path the Blossom web app proxies); the shell is skills.html so /skills
+# itself is served without a trailing-slash redirect. _redirects and robots.txt stay at the publish root.
+rm -rf dist && mkdir -p dist/skills
+cp index.html dist/skills.html && cp -r skills dist/skills/skills && cp -r assets/shots dist/skills/shots && cp assets/og.jpg dist/skills/og.jpg && cp assets/logo_blossom_flower_256.jpg dist/skills/favicon.jpg
+mkdir -p dist/skills/profiles && cp assets/profiles/*.jpg dist/skills/profiles/
+# Creator rows seeded before the move point at /profiles on this host.
 mkdir -p dist/profiles && cp assets/profiles/*.jpg dist/profiles/
-cp llms.txt dist/llms.txt
-cp -r pages/. dist/ && cp sitemap.xml robots.txt _redirects dist/
+cp llms.txt dist/skills/llms.txt
+cp -r pages/. dist/skills/ && cp sitemap.xml dist/skills/ && cp robots.txt _redirects dist/

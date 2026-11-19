@@ -1,14 +1,17 @@
-// ---------- checkout (Stripe Checkout via /.netlify/functions/checkout; prices come from the database)
-function checkout(s, plan){
-  askEmail('Checkout · '+s.name, (plan==='once'?'Buy for ':'Subscribe · ')+money(s.price[plan])+(plan==='monthly'?'/mo':plan==='yearly'?'/yr':''), async(email)=>{
-    const j=await post('checkout',{skill:s.id, plan, email}); if(!j.url) throw new Error('No checkout URL returned'); location.href=j.url; await new Promise(()=>{}); });
+// ---------- checkout (Stripe Checkout via <BASE>/api/checkout; prices come from the database)
+// Purchases belong to the signed-in Blossom user; the account email is the receipt address, and the prompt only appears when it has none.
+async function checkout(s, plan){
+  const me=await requireMe(); if(!me) return;
+  const start=async(email)=>{ const j=await post('checkout',{skill:s.id, plan, email, user_id:me.userId}); if(!j.url) throw new Error('No checkout URL returned'); LS.set('email',email); location.href=j.url; await new Promise(()=>{}); };
+  if(emailOk(me.email)){ start(me.email).catch(err=>toast(err.message)); return; }
+  askEmail('Checkout · '+s.name, (plan==='once'?'Buy for ':'Subscribe · ')+money(s.price[plan])+(plan==='monthly'?'/mo':plan==='yearly'?'/yr':''), start);
 }
 function success(id, plan){
   const s=skill(id); if(!s) return library();
   return `<div class="wrap" style="max-width:720px"><div class="card success"><div class="big">🎉</div><h1>You’re in. ${esc(s.name)} is yours.</h1><p class="small">${plan==='once'?'One-time purchase':'Subscribed · '+plan} · receipt on its way to ${esc(LS.get('email','your email'))}${tokens()[s.id]?'':' · confirming your payment…'}</p>
     <button class="pill pri lg" id="get" style="max-width:360px;margin:16px auto 0">Download SKILL.md</button>
     <div style="text-align:left;margin-top:26px"><h3 style="font-size:15px;margin-bottom:8px">Install it</h3>${installBlock(s)}</div>
-    <div style="margin-top:22px"><a href="/skill/${s.id}">Back to the skill</a> · <a href="/">Browse more</a></div></div></div>`;
+    <div style="margin-top:22px"><a href="${BASE}/skill/${s.id}">Back to the skill</a> · <a href="${BASE}">Browse more</a></div></div></div>`;
 }
 
 

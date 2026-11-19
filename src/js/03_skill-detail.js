@@ -8,7 +8,7 @@ function planOptions(s){
   return o;
 }
 function installBlock(s){
-  const slug=s.id, tok=tokens()[s.id], url = s.price.free ? (s.remote ? `${SITE}/.netlify/functions/download?skill=${slug}` : `${SITE}/skills/${slug}/SKILL.md`) : tok ? `${SITE}/.netlify/functions/download?skill=${slug}&token=${encodeURIComponent(tok)}` : null;
+  const slug=s.id, tok=tokens()[s.id], url = s.price.free ? (s.remote ? `${SITE}/api/download?skill=${slug}` : `${SITE}/skills/${slug}/SKILL.md`) : tok ? `${SITE}/api/download?skill=${slug}&token=${encodeURIComponent(tok)}` : null;
   if(!url){ const note=`<p class="small">Subscribe first — your personal install command (a link only you can use) appears here right after checkout.</p>`; return `<div class="itabs">${['Claude','Claude Code','Cursor','ChatGPT','Grok'].map((v,i)=>`<button class="${i===0?'on':''}" disabled>${v}</button>`).join('')}</div><div id="ibody">${note}</div>`; }
   const tabs = {claude:'Claude', code:'Claude Code', cursor:'Cursor', chatgpt:'ChatGPT', grok:'Grok'};
   const content = {
@@ -24,7 +24,7 @@ function installBlock(s){
   return `<div class="itabs">${Object.entries(tabs).map(([k,v])=>`<button class="${state.itab===k?'on':''}" data-itab="${k}">${v}</button>`).join('')}</div><div id="ibody">${content[state.itab]}</div>`;
 }
 function detail(id){
-  const s=skill(id); if(!s) return `<div class="wrap"><div class="empty">${D.loaded?'That skill doesn’t exist (yet). <a href="/">Back to the library</a>':'Loading…'}</div></div>`;
+  const s=skill(id); if(!s) return `<div class="wrap"><div class="empty">${D.loaded?'That skill doesn’t exist (yet). <a href="'+BASE+'">Back to the library</a>':'Loading…'}</div></div>`;
   const c=creator(s.creator); const plans=planOptions(s); if(!state.plan||!plans.find(p=>p.k===state.plan)) state.plan=plans.find(p=>p.k==='yearly')?.k||plans[0].k;
   const have = s.price.free || !!tokens()[s.id];
   const sel = plans.find(p=>p.k===state.plan);
@@ -40,8 +40,8 @@ function detail(id){
     <div class="blk"><h3>${IC.check}What it does</h3><ul class="hl hl2">${(s.highlights||[]).map(h=>`<li style="display:flex;gap:8px;font-size:14.5px"><span style="color:var(--teal);font-weight:800">✓</span>${esc(h)}</li>`).join('')}</ul></div>
     <div class="blk"><h3>${IC.chat}Try these prompts</h3><div class="prompts">${s.prompts.map(p=>`<div class="prompt"><span>“${esc(p)}”</span><button class="cp" data-copy="${esc(p)}">Copy</button></div>`).join('')}</div></div>
     <div class="blk"><h3>${IC.sparkle}What you get${(s.shots||[]).length?` <span class="small" style="font-weight:600">· ${s.shots.length} screenshot${s.shots.length===1?'':'s'} from real runs</span>`:''}</h3>${(s.shots||[]).length?`<div class="gal ${s.shots.length===1?'one':''}">${s.shots.map(([f,c])=>`<figure data-lb="${shotUrl(f)}"><img src="${shotUrl(f)}" alt="${esc(c)}" loading="lazy"><figcaption>${esc(c)}</figcaption></figure>`).join('')}</div><details style="margin-top:12px"><summary class="small" style="cursor:pointer;font-weight:700">Sample reply as text</summary><div class="sample" style="margin-top:8px"><div class="md">${md(s.sample)}</div></div></details>`:`<div class="sample"><span class="lbl">Sample output · what your AI replies</span><div class="md">${md(s.sample)}</div></div>`}</div>
-    <div class="blk"><h3>${IC.plug}What it needs</h3>${(s.requires||[]).map(r=>{const m=mcp(r); return m?`<div class="reqrow"><div class="em">${mIcon(m,true)}</div><div><b>${esc(m.name)}</b><span>${esc(m.pitch.split('.')[0])}.</span></div><a class="pill sec sm" href="/mcp/${m.id}">Connect</a></div>`:''}).join('')||'<p class="small">Nothing beyond your AI assistant.</p>'}${(s.requires||[]).includes('blossom-connector')?brokerStrip('<b style="color:var(--ink)">Works with your brokerage.</b> The Connector reads whatever you\'ve linked to Blossom, so this skill runs the same on Wealthsimple, Questrade, Robinhood, Public, IBKR, TD and the rest. Broker MCPs are optional extras.'):''}</div>
-    ${(s.optional||[]).length?`<div class="blk"><h3>${IC.plus}Also works with</h3><p class="small" style="margin:0 0 10px">Not required. If you have these connected, the skill uses them too.</p>${(s.optional||[]).map(r=>{const m=mcp(r); return m?`<div class="reqrow" style="border-style:dashed"><div class="em" style="background:var(--bg)">${mIcon(m,true)}</div><div><b>${esc(m.name)} <span class="badge" style="background:var(--lav2);color:var(--p600)">supported</span></b><span>${esc(m.pitch.split('.')[0])}.</span></div><a class="pill sec sm" href="/mcp/${m.id}">Details</a></div>`:''}).join('')}</div>`:''}
+    <div class="blk"><h3>${IC.plug}What it needs</h3>${(s.requires||[]).map(r=>{const m=mcp(r); return m?`<div class="reqrow"><div class="em">${mIcon(m,true)}</div><div><b>${esc(m.name)}</b><span>${esc(m.pitch.split('.')[0])}.</span></div><a class="pill sec sm" href="${BASE}/mcp/${m.id}">Connect</a></div>`:''}).join('')||'<p class="small">Nothing beyond your AI assistant.</p>'}${(s.requires||[]).includes('blossom-connector')?brokerStrip('<b style="color:var(--ink)">Works with your brokerage.</b> The Connector reads whatever you\'ve linked to Blossom, so this skill runs the same on Wealthsimple, Questrade, Robinhood, Public, IBKR, TD and the rest. Broker MCPs are optional extras.'):''}</div>
+    ${(s.optional||[]).length?`<div class="blk"><h3>${IC.plus}Also works with</h3><p class="small" style="margin:0 0 10px">Not required. If you have these connected, the skill uses them too.</p>${(s.optional||[]).map(r=>{const m=mcp(r); return m?`<div class="reqrow" style="border-style:dashed"><div class="em" style="background:var(--bg)">${mIcon(m,true)}</div><div><b>${esc(m.name)} <span class="badge" style="background:var(--lav2);color:var(--p600)">supported</span></b><span>${esc(m.pitch.split('.')[0])}.</span></div><a class="pill sec sm" href="${BASE}/mcp/${m.id}">Details</a></div>`:''}).join('')}</div>`:''}
     <div class="blk"><h3>${IC.gear}How to install</h3>${installBlock(s)}</div>
     <div class="blk"><details class="skillmd"><summary>${IC.file}SKILL.md <span class="small" style="font-weight:600">· what your AI actually reads</span></summary><pre>${esc(s.skill)}</pre></details></div>`;
   else if(state.dtab==='updates') body = `
@@ -49,13 +49,13 @@ function detail(id){
     <div class="tl">${s.log.map(([v,d,n],i)=>`<div class="tli"><span class="v">v${v}</span><span class="d">${new Date(d).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'})}</span>${i===0?'<span class="tag">Latest</span>':''}<p>${esc(n)}</p></div>`).join('')}</div>`;
   else body = `
     <div class="rsum"><div><div class="big">${s.rating.toFixed(1)}</div><div>${stars(s.rating)}</div><div class="small">${s.ratings} ratings · ${fmtN(s.downloads)} downloads</div></div><div class="bars">${dist.map(([n,v])=>`<div><span>${n} ★</span><i><b style="width:${Math.round(v/tot*100)}%"></b></i><span>${Math.round(v/tot*100)}%</span></div>`).join('')}</div></div>
-    <div class="compose">${avatar(ME,36)}<div style="flex:1"><textarea placeholder="Ran it? Say what it did for you…" disabled></textarea><div class="note">Ratings and comments open when V1 goes live. Only people who downloaded the skill can rate it.</div></div></div>
+    <div class="compose">${avatar(ME?.username,36)}<div style="flex:1"><textarea placeholder="Ran it? Say what it did for you…" disabled></textarea><div class="note">Ratings and comments open when V1 goes live. Only people who downloaded the skill can rate it.</div></div></div>
     <div style="margin-top:14px">${reviews}</div>`;
   const cc = creatorCard(s.creator);
-  const reqs = '' && (s.requires||[]).length ? `<div class="card" style="padding:14px 16px"><b style="color:var(--ink);font-size:13.5px">Needs</b>${(s.requires||[]).map(r=>{const m=mcp(r);return m?`<div style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13.5px"><span>${m.emoji}</span><a href="/mcp/${m.id}">${esc(m.name)}</a><span class="small" style="margin-left:auto">${/^Free/.test(m.price)?'free':'from free'}</span></div>`:''}).join('')}</div>`:'';
+  const reqs = '' && (s.requires||[]).length ? `<div class="card" style="padding:14px 16px"><b style="color:var(--ink);font-size:13.5px">Needs</b>${(s.requires||[]).map(r=>{const m=mcp(r);return m?`<div style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13.5px"><span>${m.emoji}</span><a href="${BASE}/mcp/${m.id}">${esc(m.name)}</a><span class="small" style="margin-left:auto">${/^Free/.test(m.price)?'free':'from free'}</span></div>`:''}).join('')}</div>`:'';
   return `<div class="wrap">${pageHead(isReal(s)?'Skills':'Skill examples', isReal(s)?'/':'/examples')}
   <div class="detail"><div>
-    <div class="card"><div class="dhead"><div class="em">${sIcon(s)}</div><div style="flex:1;min-width:0"><h1>${esc(s.name)}${s.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h1><div class="pitch">${esc(s.pitch)}</div><div class="by">${avatar(s.creator,24)} <b>${esc(c?.name||s.creator)}</b> @${esc(s.creator)} ${badge(c)}<button class="pill teal sm" id="follow" style="margin-left:6px">Follow</button></div>
+    <div class="card"><div class="dhead"><div class="em">${sIcon(s)}</div><div style="flex:1;min-width:0"><h1>${esc(s.name)}${s.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h1><div class="pitch">${esc(s.pitch)}</div><div class="by">${avatar(s.creator,24)} <b>${esc(c?.name||s.creator)}</b> @${esc(s.creator)} ${badge(c)}</div>
       <div class="stats"><div><b>${fmtN(s.downloads)}</b>downloads</div><div><b>${stars(s.rating)} ${s.rating.toFixed(1)}</b>${s.ratings} ratings</div><div><b>v${s.version}</b>updated ${ago(s.updated)}</div><div><b>${esc(s.cadence.split(',')[0].slice(0,16))}</b>update cadence</div></div></div></div>
       ${tabsHtml}<div class="dbody">${body}</div></div>
   </div>
@@ -66,30 +66,13 @@ function detail(id){
     ${cc}${reqs}
   </div></div></div>`;
 }
-// The Blossom app's profile card, as in the app: avatar with teal ring, name + tick, handle, followers • following • stocks,
-// a framed panel with the allocation donut (callout chips on the ring, holdings count in the middle) and a full-width Follow bar,
-// then "Portfolio verified by Blossom" under the button.
-function donut(port){
-  const COL=['#2EC4B6','#7361F7','#F7A541','#F25F7A','#4C8DF5','#9AA0A6'];
-  let segs=port.filter(x=>x&&x.w>0).map(x=>({t:String(x.t),w:+x.w})).sort((a,b)=>b.w-a.w);
-  const small=segs.filter(x=>x.w<3); if(small.length>1){ segs=segs.filter(x=>x.w>=3); segs.push({t:'Other', w:+small.reduce((a,x)=>a+x.w,0).toFixed(1)}); }
-  const tot=segs.reduce((a,x)=>a+x.w,0)||1; const S=240, cx=S/2, R=92, W=26, C=2*Math.PI*R; let off=0;
-  const rings=[], chips=[];
-  segs.forEach((x,i)=>{ const frac=x.w/tot, len=C*frac;
-    rings.push(`<circle r="${R}" cx="${cx}" cy="${cx}" fill="none" stroke="${COL[i%COL.length]}" stroke-width="${W}" stroke-dasharray="${Math.max(0,len-3)} ${C-len+3}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cx})"/>`);
-    if(i<3){ const mid=(off+len/2)/C, ang=(-90+360*mid)*Math.PI/180; const px=cx+R*Math.cos(ang), py=cx+R*Math.sin(ang);
-      const dark=x.t==='Other'; chips.push(`<span class="dchip" style="left:${px}px;top:${py}px"><i style="background:${dark?'#171717':COL[i%COL.length]}">${esc(dark?'OTHER':x.t.slice(0,4).toUpperCase())}</i>${x.w.toFixed(1)}%</span>`); }
-    off+=len; });
-  const n=port.filter(x=>x&&x.w>0).length;
-  return `<div class="donut2" style="width:${S}px;height:${S}px"><svg viewBox="0 0 ${S} ${S}" width="${S}" height="${S}">${rings.join('')}</svg>${chips.join('')}<div class="dc"><span class="cpill">${n} holding${n===1?'':'s'}</span><span class="clbl">Portfolio</span></div></div>`;
-}
+// The Blossom app's profile card without its live parts: followers, the portfolio donut and Follow all read Blossom data
+// this site can't reach, so it keeps the avatar, name and handle, and links to the profile on Blossom when there is one.
 function creatorCard(h){
   const c=creator(h); if(!c) return '';
-  const stats=[`${fmtN(c.followers||0)} Followers`, c.following?`${fmtN(c.following)} Following`:'', c.stocks?`${c.stocks} Stock${c.stocks===1?'':'s'}`:''].filter(Boolean).join(' • ');
-  const follow=c.url?`<a class="pfollow" href="${esc(c.url)}" target="_blank" rel="noopener">Follow</a>`:'';
-  const verified=c.portfolio&&c.portfolio.length?`<div class="pver"><img src="data:image/svg+xml;base64,__BADGE__" alt="">Portfolio verified by Blossom</div>`:'';
-  return `<div class="card pcard2"><div class="pava">${avatar(h,72)}<span class="pbolt"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></span></div><div class="pname">${esc(c.name||h)} ${badge(c)}</div><div class="phandle">@${esc(h)}</div><div class="pstats">${stats}</div>
-    ${c.portfolio&&c.portfolio.length?`<div class="ppanel">${donut(c.portfolio)}${follow}</div>${verified}`:(c.url?`<div class="ppanel" style="margin-top:14px">${follow}</div>`:'')}</div>`;
+  const profile=c.url?`<div class="ppanel" style="margin-top:14px"><a class="pfollow" href="${esc(c.url)}" target="_blank" rel="noopener">View profile on Blossom</a></div>`:'';
+  return `<div class="card pcard2"><div class="pava">${avatar(h,72)}<span class="pbolt"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></span></div><div class="pname">${esc(c.name||h)} ${badge(c)}</div><div class="phandle">@${esc(h)}</div>
+    ${profile}</div>`;
 }
 function bindDetail(id){
   const s=skill(id); if(!s) return;
@@ -100,7 +83,6 @@ function bindDetail(id){
   const g=$('#get'); if(g) g.onclick=()=>downloadSkill(s);
   const rs=$('#restore'); if(rs) rs.onclick=e=>{ e.preventDefault(); restoreAccess(); };
   const b=$('#buy'); if(b) b.onclick=()=>checkout(s, state.plan);
-  const f=$('#follow'); if(f) f.onclick=()=>{ f.textContent='Following'; f.className='pill sec sm'; toast('Following @'+s.creator); };
   const sh=$('#share'); if(sh) sh.onclick=()=>copy(SITE+'/skill/'+s.id,'Link copied');
   document.querySelectorAll('[data-lb]').forEach(f=>f.onclick=()=>{ const m=document.createElement('div'); m.className='lb'; m.innerHTML=`<img src="${f.dataset.lb}" alt="">`; m.onclick=()=>m.remove(); document.body.appendChild(m); });
   document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',e=>{ if(e.target.closest('a,button')) return; go(el.dataset.go); }));

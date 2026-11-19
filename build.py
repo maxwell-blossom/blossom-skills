@@ -7,7 +7,11 @@ from hero_faces import HERO
 SKILLS = [s for s in SKILLS if s['id'] not in HIDDEN]
 
 OUT = os.path.dirname(os.path.abspath(__file__))
-SITE = 'https://blossom-skills.netlify.app'
+# Served under /skills: www.blossomsocial.com/skills/* is proxied here by the Blossom web app, and
+# this site keeps the same paths so links and redirects resolve the same on either host.
+BASE = os.environ.get('BASE_PATH', '/skills')
+APP = 'https://www.blossomsocial.com'
+SITE = os.environ.get('SITE_ORIGIN', APP) + BASE
 
 logo_b64 = base64.b64encode(open(os.path.join(OUT, 'assets/_blossom_logo.png'), 'rb').read()).decode()
 wall_b64 = base64.b64encode(open(os.path.join(OUT, 'assets/wall_tile.jpg'), 'rb').read()).decode()
@@ -24,21 +28,23 @@ NAV = {k: open(os.path.join(OUT, 'assets/nav', k + '.svg')).read().strip() for k
 beevis_webp = base64.b64encode(open(os.path.join(OUT, 'assets/nav/beevis-sidebar-icon.webp'), 'rb').read()).decode()
 NAV['beevis'] = f'<img src="data:image/webp;base64,{beevis_webp}" alt="" style="width:18px;height:18px">'
 NAV['skills'] = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none"><path fill-rule="evenodd" d="M8 .9a.7.7 0 0 1 .7.7v1.1h2.3A2.5 2.5 0 0 1 13.5 5.2v6.1a2.5 2.5 0 0 1-2.5 2.5H5a2.5 2.5 0 0 1-2.5-2.5V5.2A2.5 2.5 0 0 1 5 2.7h2.3V1.6A.7.7 0 0 1 8 .9m-3 3.2a1.1 1.1 0 0 0-1.1 1.1v6.1a1.1 1.1 0 0 0 1.1 1.1h6a1.1 1.1 0 0 0 1.1-1.1V5.2A1.1 1.1 0 0 0 11 4.1zm1.2 2.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2m3.6 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2M5.6 9.6h4.8a.6.6 0 0 1 0 1.2H5.6a.6.6 0 0 1 0-1.2M.5 6.4a.7.7 0 0 1 .7.7v2.3a.7.7 0 0 1-1.4 0V7.1a.7.7 0 0 1 .7-.7m15 0a.7.7 0 0 1 .7.7v2.3a.7.7 0 0 1-1.4 0V7.1a.7.7 0 0 1 .7-.7" fill="currentColor"/></svg>'
-TOPICS = [('ETFs','etfs'),('Passive Income','passive_income'),('Beginner Investors','beginnerinvestors'),('Dividends','dividends'),('Market News','marketnews')]
-TOPIC_B64 = {k: base64.b64encode(open(os.path.join(OUT, 'assets/topics', k + '.png'), 'rb').read()).decode() for _, k in TOPICS}
+TOPICS = [('ETFs','etfs','ETFs__TOPIC-1670944602937-vWRwRGXH_kPwalIyp44Z8cCx0'),('Passive Income','passive_income','Passive-Income__TOPIC-1674487154071-KYGXxYR7_kPwalIyp44Z8cCx0'),('Beginner Investors','beginnerinvestors','Beginner-Investors__TOPIC-1670944602937-nfDouV3U_kPwalIyp44Z8cCx0'),('Dividends','dividends','Dividends__TOPIC-1670944602936-RCWbYjlb_kPwalIyp44Z8cCx0'),('Market News','marketnews','Market-News__TOPIC-1670944602936-YItlEti6_kPwalIyp44Z8cCx0')]
+TOPIC_B64 = {k: base64.b64encode(open(os.path.join(OUT, 'assets/topics', k + '.png'), 'rb').read()).decode() for _, k, _ in TOPICS}
 NAV['about'] = open(os.path.join(OUT, 'assets/nav/about.svg')).read().strip()
 NAV['resources'] = open(os.path.join(OUT, 'assets/nav/resources.svg')).read().strip()
+def app_link(path, icon, label, extra=''):
+    return f'<a href="{APP}{path}" target="_blank" rel="noopener"{extra}>{NAV[icon]}{label}</a>'
 SIDEBAR = ('<aside class="sidebar">'
-  f'<a href="#" data-app>{NAV["about"]}About Blossom</a><hr>'
-  f'<a href="#" data-app>{NAV["home"]}Home</a><a href="#" data-app>{NAV["markets"]}Markets</a><a href="#" data-app>{NAV["learn"]}Learn</a><a href="#" data-app>{NAV["portfolio"]}Portfolio</a><a href="#" data-app>{NAV["insights"]}Insights</a><hr>'
-  f'<a href="#" data-app>{NAV["beevis"]}Chat with Beevis</a>'
-  f'<a href="/" class="on">{NAV["skills"]}Skills &amp; MCPs<span class="new">New</span></a><hr>'
-  f'<a href="#" data-app>{NAV["save"]}Saved posts</a><hr>'
-  f'<div class="sec"><span style="display:flex;align-items:center;gap:12px">{NAV["topics"]}Topics</span><svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>'
-  + ''.join(f'<div class="topic"><img src="data:image/png;base64,{TOPIC_B64[k]}" alt="">{n}</div>' for n,k in TOPICS)
-  + f'<div class="sub">See All Topics</div><hr><a href="#" data-app>{NAV["buzz"]}The Weekly Buzz</a><hr>'
-  f'<a href="#" data-app>{NAV["resources"]}Resources</a><div class="sub">Get Help</div>'
-  f'<a href="#" data-app class="bottom" style="color:var(--muted)">{NAV["settings"]}Settings</a></aside>')
+  + app_link('/about', 'about', 'About Blossom') + '<hr>'
+  + app_link('/', 'home', 'Home') + app_link('/markets', 'markets', 'Markets') + app_link('/learn', 'learn', 'Learn') + app_link('/portfolio', 'portfolio', 'Portfolio') + app_link('/insights', 'insights', 'Insights') + '<hr>'
+  + app_link('/beevis', 'beevis', 'Chat with Beevis')
+  + f'<a href="{BASE}" class="on">{NAV["skills"]}Skills &amp; MCPs<span class="new">New</span></a><hr>'
+  + app_link('/bookmark', 'save', 'Saved posts') + '<hr>'
+  + f'<div class="sec"><span style="display:flex;align-items:center;gap:12px">{NAV["topics"]}Topics</span><svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>'
+  + ''.join(f'<a class="topic" href="{APP}/topics/{t}" target="_blank" rel="noopener"><img src="data:image/png;base64,{TOPIC_B64[k]}" alt="">{n}</a>' for n,k,t in TOPICS)
+  + f'<a class="sub" href="{APP}/topics" target="_blank" rel="noopener">See All Topics</a><hr><a href="https://news.blossomsocial.com/" target="_blank" rel="noopener">{NAV["buzz"]}The Weekly Buzz</a><hr>'
+  f'<div class="sub" style="display:flex;align-items:center;gap:12px">{NAV["resources"]}Resources</div><div class="sub">Get Help</div>'
+  + app_link('/settings', 'settings', 'Settings', ' class="bottom" style="color:var(--muted)"') + '</aside>')
 for m in MCPS:
     if m['id'] == 'fiscal-ai': m['price'] = '$65/mo · billed by Fiscal.ai'; m['signup'] = 'https://fiscal.ai/get-started/mcp/user-type/'   # Max, Nov 8
     if m['id'] == 'blossom-connector': m['price'] = 'Free with PRO+ · included with Blossom PRO+'
@@ -49,7 +55,7 @@ for m in MCPS:
     if m.get('logo'): m['logo_b64'] = base64.b64encode(open(os.path.join(OUT, 'assets', m['logo']), 'rb').read()).decode()
 
 # write SKILL.md files for the curl install
-# Free skills are served statically; paid SKILL.md lives only in Supabase and comes through /.netlify/functions/download with a purchase token.
+# Free skills are served statically; paid SKILL.md lives only in Supabase and comes through <BASE>/api/download with a purchase token.
 def preview(md):
     head, _, rest = md.partition('\n---\n')
     body = rest.strip().split('\n')
@@ -65,8 +71,7 @@ for s in SKILLS:
     else:
         SKILLS_OUT.append(dict(s, skill=preview(s['skill']), paid_preview=True))
 
-BASE = os.environ.get('BASE_PATH', '')   # '' on Netlify; '/skillsandmcps' when it moves under blossomsocial.com
-DATA = json.dumps(dict(creators=CREATORS, mcps=MCPS, skills=SKILLS_OUT, site=SITE, base=BASE, hero=[v for _, v in HERO]), ensure_ascii=False)
+DATA = json.dumps(dict(creators=CREATORS, mcps=MCPS, skills=SKILLS_OUT, site=SITE, base=BASE, app=APP, hero=[v for _, v in HERO]), ensure_ascii=False)
 
 SRC = os.path.join(OUT, "src")
 CSS = open(os.path.join(SRC, 'style.css'), encoding='utf-8').read()
@@ -83,7 +88,7 @@ FAQ = [
   ("Do skills place trades?", "Only if the creator turns on “This skill can place orders”, and then the listing says so.\n\nEverything else reads your data and explains, screens or alerts. The Blossom Connector itself never places trades."),
 ]
 jsonld = [
-  {"@context": "https://schema.org", "@type": "WebSite", "name": "Blossom Skills & MCPs", "alternateName": "Blossom skills marketplace", "url": SITE + "/", "publisher": {"@type": "Organization", "name": "Blossom Social", "url": "https://www.blossomsocial.com/"}},
+  {"@context": "https://schema.org", "@type": "WebSite", "name": "Blossom Skills & MCPs", "alternateName": "Blossom skills marketplace", "url": SITE, "publisher": {"@type": "Organization", "name": "Blossom Social", "url": "https://www.blossomsocial.com/"}},
   {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a.replace("\n\n", " ")}} for q, a in FAQ]},
   {"@context": "https://schema.org", "@type": "ItemList", "name": "Skills for investors", "itemListElement": [
       {"@type": "ListItem", "position": i + 1, "item": {"@type": "SoftwareApplication", "name": s_['name'], "description": s_['pitch'], "url": f"{SITE}/skill/{s_['id']}", "applicationCategory": "FinanceApplication", "operatingSystem": "Claude, ChatGPT, Grok, Cursor",
@@ -104,10 +109,10 @@ LEARN = ('<section class="learn" id="learn"><div class="wrap">'
   '</div>'
   '<h2 style="margin-top:28px">Questions</h2>'
   '<div class="learn-grid">' + ''.join(f'<article><h3>{_p(q)}</h3>' + ''.join(f'<p>{_p(x)}</p>' for x in a.split('\n\n')) + '</article>' for q, a in FAQ) + '</div>'
-  '<p class="small" style="margin-top:22px">Want to publish? <a href="/post">Post a skill</a> · <a href="/terms">Creator terms</a> · Built an MCP investors would use? <a href="mailto:partnerships@blossomsocial.com?subject=MCP%20listing%20on%20Blossom%20Skills">Tell us</a>.</p>'
+  f'<p class="small" style="margin-top:22px">Want to publish? <a href="{BASE}/post">Post a skill</a> · <a href="{BASE}/terms">Creator terms</a> · Built an MCP investors would use? <a href="mailto:partnerships@blossomsocial.com?subject=MCP%20listing%20on%20Blossom%20Skills">Tell us</a>.</p>'
   '</div></section>')
 # llms.txt: the plain-text version of the catalogue for AI assistants and crawlers
-llms = ['# Blossom Skills & MCPs', '', '> A skills marketplace for investors: investing skills (SKILL.md files) and MCP servers for Claude, ChatGPT, Grok and Cursor, built by verified investors on Blossom Social. ' + SITE + '/', '', '## What they are', '']
+llms = ['# Blossom Skills & MCPs', '', '> A skills marketplace for investors: investing skills (SKILL.md files) and MCP servers for Claude, ChatGPT, Grok and Cursor, built by verified investors on Blossom Social. ' + SITE, '', '## What they are', '']
 llms += [f'- {q} {a.replace(chr(10)+chr(10), " ")}' for q, a in FAQ]
 llms += ['', '## Skills', ''] + [f'- [{s_["name"]}]({SITE}/skill/{s_["id"]}) by {CREATORS[s_["creator"]]["name"]} (@{s_["creator"]}): {s_["pitch"]} Price: {"free" if s_["price"].get("free") else ", ".join(f"{k} ${v}" for k, v in s_["price"].items())}.' for s_ in SKILLS]
 llms += ['', '## MCPs', ''] + [f'- [{m["name"]}]({SITE}/mcp/{m["id"]}): {m["pitch"]}' for m in MCPS if not m.get('compat')]
@@ -128,18 +133,18 @@ def page(title, desc, url, extra_ld='', app=''):
 <meta property="og:image" content="{SITE}/og.jpg"><meta property="og:image:secure_url" content="{SITE}/og.jpg"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:alt" content="Blossom Skills &amp; MCPs"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:site_name" content="Blossom Skills">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{t}"><meta name="twitter:description" content="{d}"><meta name="twitter:image" content="{SITE}/og.jpg">
 {JSONLD}{extra_ld}
-<link rel="icon" href="/favicon.jpg">
+<link rel="icon" href="{BASE}/favicon.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>{CSS.replace('__WALL__', wall_b64)}</style></head>
 <body>
-<div class="appbar"><a class="logo" href="/"><img src="data:image/png;base64,{logo_b64}" alt="Blossom"></a><span class="sp"></span>
+<div class="appbar"><a class="logo" href="{BASE}"><img src="data:image/png;base64,{logo_b64}" alt="Blossom"></a><span class="sp"></span>
 <a class="pill sec" href="https://www.blossomsocial.com/" target="_blank" rel="noopener" style="background:var(--bg);display:inline-flex;align-items:center;gap:8px"><svg viewBox="0 0 16 16" style="width:15px;height:15px;fill:currentColor"><rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.2"/><rect x="2" y="9" width="5" height="5" rx="1.2"/><rect x="9" y="9" width="5" height="5" rx="1.2"/></svg>Get App</a>
 <a class="pill pri" href="https://www.blossomsocial.com/" target="_blank" rel="noopener" style="margin-left:12px">Sign up</a></div>
 <div class="shell">{SIDEBAR}
 <div class="main"><div id="app">{app}</div>
 {LEARN}
-<footer>Blossom Skills · V1 preview · <a href="/post">Post a skill</a> · <a href="/examples">Skill examples</a> · <a href="/mcps">MCPs</a> · <a href="/learn">How it works</a> · <a href="https://www.blossomsocial.com/" target="_blank" rel="noopener">blossomsocial.com</a></footer></div></div>
+<footer>Blossom Skills · V1 preview · <a href="{BASE}/post">Post a skill</a> · <a href="{BASE}/examples">Skill examples</a> · <a href="{BASE}/mcps">MCPs</a> · <a href="{BASE}/learn">How it works</a> · <a href="https://www.blossomsocial.com/" target="_blank" rel="noopener">blossomsocial.com</a></footer></div></div>
 <script>{JS.replace('__DATA__', DATA).replace('__BROKERS__', BROKERS_JS).replace('__BEEVIS__', beevis_b64).replace('__FLOWER__', flower_b64).replace('__BADGE__', badge_b64)}</script>
 </body></html>"""
 
@@ -151,20 +156,20 @@ def ssr_skill(s_):
     return (f'<div class="wrap"><h1>{_p(s_["name"])}</h1><p>{_p(s_["pitch"])}</p><p>By {_p(c["name"])} (@{_p(s_["creator"])}) on Blossom · {_p(price)} · v{_p(s_["version"])} · updated {_p(s_["updated"])}</p>'
             + '<ul>' + ''.join(f'<li>{_p(h)}</li>' for h in (s_.get('highlights') or [])) + '</ul>'
             + (f'<p>Needs: {_p(reqs)}.</p>' if reqs else '') + '<p>Try: ' + ' · '.join(f'“{_p(x)}”' for x in s_['prompts']) + '</p>'
-            + '<p>Works in Claude, ChatGPT, Grok and Cursor. <a href="/">All skills</a></p></div>')
+            + f'<p>Works in Claude, ChatGPT, Grok and Cursor. <a href="{BASE}">All skills</a></p></div>')
 
 def ssr_mcp(m):
     return (f'<div class="wrap"><h1>{_p(m["name"])}</h1><p>{_p(m["pitch"])}</p><p>{_p(m.get("about",""))}</p>'
             + '<ul>' + ''.join(f'<li><b>{_p(t)}</b> — {_p(d)}</li>' for t, d in m['tools']) + '</ul>'
-            + '<p>Connects to Claude, ChatGPT, Grok and Cursor. <a href="/mcps">All MCPs</a></p></div>')
+            + f'<p>Connects to Claude, ChatGPT, Grok and Cursor. <a href="{BASE}/mcps">All MCPs</a></p></div>')
 
 HOME_T = 'Blossom Skills & MCPs — the skills marketplace for investors (Claude, ChatGPT, Grok, Cursor)'
 HOME_D = 'Blossom Skills & MCPs is a skills marketplace for investors: download investing skills and connect MCPs that give Claude, ChatGPT, Grok and Cursor access to your portfolio, trades and $500M+ in weekly trade flows from 100K+ Blossom investors. Built by verified investors on Blossom.'
-open(os.path.join(OUT, 'index.html'), 'w').write(page(HOME_T, HOME_D, SITE + '/'))
+open(os.path.join(OUT, 'index.html'), 'w').write(page(HOME_T, HOME_D, SITE))
 # one static page per seeded skill and per MCP, so each tile is its own indexable URL (skills posted later are rendered by netlify/functions/page.mjs).
 # Written as <id>.html (not <id>/index.html) so Netlify's pretty URLs serve /skill/<id> directly without a 301 to a trailing slash.
 PAGES = os.path.join(OUT, 'pages'); import shutil; shutil.rmtree(PAGES, ignore_errors=True)
-urls = [SITE + '/', SITE + '/mcps', SITE + '/examples', SITE + '/learn', SITE + '/post', SITE + '/terms']
+urls = [SITE, SITE + '/mcps', SITE + '/examples', SITE + '/learn', SITE + '/post', SITE + '/terms']
 for s_ in SKILLS:
     c = CREATORS[s_['creator']]
     ld = '<script type="application/ld+json">' + json.dumps({"@context": "https://schema.org", "@type": "SoftwareApplication", "name": s_['name'], "description": s_['pitch'], "url": f"{SITE}/skill/{s_['id']}", "applicationCategory": "FinanceApplication", "operatingSystem": "Claude, ChatGPT, Grok, Cursor", "author": {"@type": "Person", "name": c['name']}, "softwareVersion": s_['version'], "dateModified": s_['updated'], "offers": {"@type": "Offer", "price": "0" if s_['price'].get('free') else str(s_['price'].get('monthly') or s_['price'].get('yearly') or s_['price'].get('once')), "priceCurrency": "CAD"}}, ensure_ascii=False) + '</script>'
@@ -185,7 +190,8 @@ for route_ in ('mcps', 'examples', 'learn', 'post', 'terms'):
               'terms': ('Creator terms — Blossom Skills', 'Terms for publishing and selling skills on Blossom Skills: ownership, the 20% platform fee, monthly payouts, updates, refunds and removal.')}
     open(os.path.join(PAGES, route_ + '.html'), 'w').write(page(titles[route_][0], titles[route_][1], f"{SITE}/{route_}"))
 open(os.path.join(OUT, 'sitemap.xml'), 'w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + ''.join(f'<url><loc>{u}</loc></url>' for u in urls) + '</urlset>\n')
-open(os.path.join(OUT, 'robots.txt'), 'w').write(f'User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\nSitemap: {SITE}/.netlify/functions/sitemap\n')
-# Netlify: static pages win; skills published later (no static page) are rendered by the page function; everything else is the SPA shell.
-open(os.path.join(OUT, '_redirects'), 'w').write('/skill/*  /.netlify/functions/page  200\n/mcp/*  /index.html  200\n/u/*  /index.html  200\n/manage/*  /index.html  200\n/success/*  /index.html  200\n/*  /index.html  200\n')
+open(os.path.join(OUT, 'robots.txt'), 'w').write(f'User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\nSitemap: {SITE}/api/sitemap\n')
+# Netlify: static pages win; functions are under <BASE>/api so the web app's proxy reaches them; skills published later (no static page)
+# are rendered by the page function; everything else under <BASE> is the SPA shell (<BASE>.html, so /skills needs no trailing-slash 301).
+open(os.path.join(OUT, '_redirects'), 'w').write(f'/  {BASE}  301\n{BASE}/api/*  /.netlify/functions/:splat  200\n{BASE}/skill/*  /.netlify/functions/page  200\n{BASE}/*  {BASE}.html  200\n')
 print('index.html', round(len(open(os.path.join(OUT, 'index.html')).read())/1024), 'KB;', len(SKILLS), 'skills,', len(MCPS), 'mcps;', len(urls), 'urls in sitemap')

@@ -14,7 +14,7 @@ export default async (req) => {
     const [skill, plan] = (cs.client_reference_id || '').split(':');
     if (skill && plan && cs.payment_status === 'paid') {
       await sb.from('purchases').upsert({
-        skill_id: skill, plan, buyer_email: (cs.customer_details?.email || cs.customer_email || '').toLowerCase(),
+        skill_id: skill, plan, buyer_email: (cs.customer_details?.email || cs.customer_email || '').toLowerCase(), buyer_user_id: cs.metadata?.user_id || null,
         stripe_session_id: cs.id, stripe_customer_id: cs.customer || null, stripe_subscription_id: cs.subscription || null,
         amount_cents: cs.amount_total, currency: cs.currency, status: 'active',
       }, { onConflict: 'stripe_session_id' });
@@ -24,7 +24,7 @@ export default async (req) => {
       if (email && s) {
         const amt = ((cs.amount_total || 0) / 100).toFixed(2) + ' ' + String(cs.currency || 'cad').toUpperCase();
         const planTxt = plan === 'once' ? 'One-time purchase' : plan === 'monthly' ? 'Monthly subscription' : 'Yearly subscription';
-        const dl = `${SITE}/.netlify/functions/download?skill=${encodeURIComponent(s.id)}&token=${encodeURIComponent(sign(s.id, email))}`;
+        const dl = `${SITE}/api/download?skill=${encodeURIComponent(s.id)}&token=${encodeURIComponent(sign(s.id, email))}`;
         const page = `${SITE}/skill/${s.id}`;
         const prompt = (s.prompts || [])[0] || 'Run ' + s.name;
         const html = `<div style="font-family:Nunito,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#171717;line-height:1.5">
