@@ -1,10 +1,13 @@
-// POST {skill, plan, email, user_id} → Stripe Checkout URL. Prices come from the skills table, not the client.
-import { db, stripe, json, bad, planPrice, SITE, userId } from './_lib.mjs';
+// POST {skill, plan, identity, email} → Stripe Checkout URL. Prices come from the skills table, not the client.
+// The receipt goes to the Blossom account's email; the typed one only when the account has none.
+import { db, stripe, json, bad, planPrice, SITE, identity } from './_lib.mjs';
 export default async (req) => {
   if (req.method !== 'POST') return bad('POST only', 405);
-  const { skill: id, plan, email, user_id } = await req.json().catch(() => ({}));
-  const buyer = userId(user_id);
-  if (!id || !plan || !buyer || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || '')) return bad('skill, plan, user_id and a valid email are required');
+  const { skill: id, plan, email: typed, identity: token } = await req.json().catch(() => ({}));
+  const me = identity(token);
+  if (!me) return bad('Sign in to Blossom to buy', 401);
+  const buyer = me.userId, email = me.email || typed;
+  if (!id || !plan || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || '')) return bad('skill, plan and a valid email are required');
   const { data: s, error } = await db().from('skills').select('id,name,creator,price,status').eq('id', id).single();
   if (error || !s || s.status !== 'live') return bad('Unknown skill', 404);
   const cents = planPrice(s.price, plan);

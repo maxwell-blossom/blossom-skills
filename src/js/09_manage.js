@@ -21,7 +21,7 @@ function bindManage(id){
   const s=skill(id); if(!s || !ownsSkill(s)) return; bindCopy();
   $('#pub').onclick=()=>{ const v=$('#ver').value.trim(), n=$('#note').value.trim(); if(!n){ toast('Say what changed'); return; }
     const local=()=>{ const m=mine(); const i=m.findIndex(x=>x.id===id); const today=new Date().toISOString().slice(0,10); if(i>=0){ m[i].log.unshift([v,today,n]); m[i].version=v; LS.set('mine',m); } else { s.log.unshift([v,today,n]); s.version=v; } toast('Update published · '+(s.price.free?'followers':'subscribers')+' notified'); route(); };
-    if(s.mine) post('update',{skill:id, user_id:ME.userId, version:v, note:n}).then(local).catch(err=>toast('Could not publish the update: '+err.message)); else local(); };
+    if(s.mine) idToken().then(identity=>post('update',{skill:id, identity, version:v, note:n})).then(local).catch(err=>toast('Could not publish the update: '+err.message)); else local(); };
 }
 
 route();

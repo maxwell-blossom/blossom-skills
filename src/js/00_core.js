@@ -53,17 +53,22 @@ async function downloadSkill(s){
 }
 async function restoreAccess(){
   const me=await requireMe(); if(!me) return;
-  try { const j=await post('restore',{user_id:me.userId}); if(!j.owned.length){ toast('No active purchases on this account'); return; } const t=tokens(), o=owned(); j.owned.forEach(x=>{ t[x.skill]=x.token; o[x.skill]=x.plan; }); LS.set('tokens',t); LS.set('owned',o); toast('Restored '+j.owned.length+' skill'+(j.owned.length===1?'':'s')); route(); }
+  try { const j=await post('restore',{identity:await idToken()}); if(!j.owned.length){ toast('No active purchases on this account'); return; } const t=tokens(), o=owned(); j.owned.forEach(x=>{ t[x.skill]=x.token; o[x.skill]=x.plan; }); LS.set('tokens',t); LS.set('owned',o); toast('Restored '+j.owned.length+' skill'+(j.owned.length===1?'':'s')); route(); }
   catch(err){ toast(err.message); }
 }
 const TAKE = 0.20, STRIPE_PCT = 0.029, STRIPE_FIX = 0.30;
 // ---- Signed-in Blossom user. The web app's proxy strips Blossom cookies on the way here, so the page asks the web app
-// itself (same origin through the proxy): {userId, username, name, email, photoPath}, or null when signed out.
-// Retried once: the first call after the login token expires can 401 while the web app refreshes it.
-let ME = null;
-const meReady = (async()=>{ for(let i=0;i<2;i++){ const r=await fetch('/api/skills/identity',{method:'POST'}).catch(()=>null); if(r&&r.ok){ ME=(await r.json()).user||null; return ME; } if(r&&r.status!==401) break; } return null; })();
-// Sign in on the Blossom web app and come back to this page's public URL (the web app serves this site under BASE).
-function signIn(){ location.href=APP+'/login?redirect='+encodeURIComponent(D.site+location.pathname.slice(BASE.length)+location.search); }
+// itself (same origin through the proxy): {userId, username, name, email, photoPath}, or null when signed out, plus a signed
+// token the functions verify. Retried once: the first call after the login token expires can 401 while the web app refreshes it.
+let ME = null, ID_TOKEN = null, ID_AT = 0;
+async function loadMe(){ for(let i=0;i<2;i++){ const r=await fetch('/api/skills/identity',{method:'POST'}).catch(()=>null); if(r&&r.ok){ const j=await r.json(); ME=j.user||null; ID_TOKEN=j.token||null; ID_AT=Date.now(); return ME; } if(r&&r.status!==401) break; } return null; }
+const meReady = loadMe();
+// The token lasts 10 minutes, so one older than 8 is replaced before it goes to a function.
+async function idToken(){ await meReady; if(!ID_TOKEN || Date.now()-ID_AT > 8*60e3) await loadMe(); return ID_TOKEN; }
+// Sign in on the Blossom web app and come back here. On a Blossom host that is this origin, so dev stays on dev;
+// the bare Netlify host goes to the public URL.
+function signIn(){ const here=location.pathname+location.search;
+  location.href=/(^|\.)blossomsocial\.com$/.test(location.hostname) ? '/login?redirect='+encodeURIComponent(here) : APP+'/login?redirect='+encodeURIComponent(D.site+here.slice(BASE.length)); }
 async function requireMe(){ const me=await meReady; if(!me) signIn(); return me; }
 const $ = (s, el=document) => el.querySelector(s);
 const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
