@@ -65,8 +65,10 @@ async function loadMe(){ for(let i=0;i<2;i++){ const r=await fetch('/api/skills/
 const meReady = loadMe();
 // The token lasts 10 minutes, so one older than 8 is replaced before it goes to a function.
 async function idToken(){ await meReady; if(!ID_TOKEN || Date.now()-ID_AT > 8*60e3) await loadMe(); return ID_TOKEN; }
-// Sign in on the Blossom web app and come back to this page's public URL (the web app serves this site under BASE).
-function signIn(){ location.href=APP+'/login?redirect='+encodeURIComponent(D.site+location.pathname.slice(BASE.length)+location.search); }
+// Sign in on the Blossom web app and come back here. On a Blossom host that is this origin, so dev stays on dev;
+// the bare Netlify host goes to the public URL.
+function signIn(){ const here=location.pathname+location.search;
+  location.href=/(^|\.)blossomsocial\.com$/.test(location.hostname) ? '/login?redirect='+encodeURIComponent(here) : APP+'/login?redirect='+encodeURIComponent(D.site+here.slice(BASE.length)); }
 async function requireMe(){ const me=await meReady; if(!me) signIn(); return me; }
 const $ = (s, el=document) => el.querySelector(s);
 const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
