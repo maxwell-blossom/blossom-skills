@@ -53,7 +53,7 @@ function detail(id){
     <div style="margin-top:14px">${reviews}</div>`;
   const cc = creatorCard(s.creator);
   const reqs = '' && (s.requires||[]).length ? `<div class="card" style="padding:14px 16px"><b style="color:var(--ink);font-size:13.5px">Needs</b>${(s.requires||[]).map(r=>{const m=mcp(r);return m?`<div style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13.5px"><span>${m.emoji}</span><a href="${BASE}/mcp/${m.id}">${esc(m.name)}</a><span class="small" style="margin-left:auto">${/^Free/.test(m.price)?'free':'from free'}</span></div>`:''}).join('')}</div>`:'';
-  return `<div class="wrap">${pageHead(isReal(s)?'Skills':'Skill examples', isReal(s)?'/':'/examples')}
+  return `<div class="wrap">${pageHead('Skills', '/')}
   <div class="detail"><div>
     <div class="card"><div class="dhead"><div class="em">${sIcon(s)}</div><div style="flex:1;min-width:0"><h1>${esc(s.name)}${s.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h1><div class="pitch">${esc(s.pitch)}</div><div class="by">${avatar(s.creator,24)} <b>${esc(c?.name||s.creator)}</b> @${esc(s.creator)} ${badge(c)}</div>
       <div class="stats"><div><b>${fmtN(s.downloads)}</b>downloads</div><div><b>${stars(s.rating)} ${s.rating.toFixed(1)}</b>${s.ratings} ratings</div><div><b>v${s.version}</b>updated ${ago(s.updated)}</div><div><b>${esc(s.cadence.split(',')[0].slice(0,16))}</b>update cadence</div></div></div></div>
@@ -61,6 +61,7 @@ function detail(id){
   </div>
   <div class="side">
     <div class="card buy">${amt}${planSel}${cta}${s.price.free?'':`<div class="stripe">Secure checkout by <b>Stripe</b> · 80% goes to the creator</div>`}
+      <button class="pill sec lg" id="share" style="margin-top:10px">Share on Blossom</button>
       <ul class="incl"><li>Works in Claude, Claude Code, Cursor, ChatGPT, Grok</li><li>${s.price.free?'Updates at the creator’s pace':'Every update while subscribed'}</li><li>${s.trades?'⚠️ Can place orders through your broker MCP':'Read-only: never places trades'}</li>${s.price.free?'':'<li>Cancel anytime from Settings → Subscriptions</li>'}</ul>
 </div>
     ${cc}${reqs}
@@ -83,7 +84,8 @@ function bindDetail(id){
   const g=$('#get'); if(g) g.onclick=()=>downloadSkill(s);
   const rs=$('#restore'); if(rs) rs.onclick=e=>{ e.preventDefault(); restoreAccess(); };
   const b=$('#buy'); if(b) b.onclick=()=>checkout(s, state.plan);
-  const sh=$('#share'); if(sh) sh.onclick=()=>copy(SITE+'/skill/'+s.id,'Link copied');
+  // Share = the public link (with its own preview image via og.mjs); the native share sheet where there is one, else copy it for a Blossom post.
+  const sh=$('#share'); if(sh) sh.onclick=async()=>{ const url=SITE+'/skill/'+s.id; if(navigator.share){ try{ await navigator.share({title:s.name, text:s.pitch, url}); return; }catch(e){ if(e.name==='AbortError') return; } } copy(url,'Link copied — paste it in a Blossom post'); };
   document.querySelectorAll('[data-lb]').forEach(f=>f.onclick=()=>{ const m=document.createElement('div'); m.className='lb'; m.innerHTML=`<img src="${f.dataset.lb}" alt="">`; m.onclick=()=>m.remove(); document.body.appendChild(m); });
   document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',e=>{ if(e.target.closest('a,button')) return; go(el.dataset.go); }));
 }

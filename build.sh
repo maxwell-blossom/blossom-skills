@@ -10,6 +10,7 @@ python3 gen_seed.py
 rm -rf dist && mkdir -p dist/skills
 cp index.html dist/skills.html && cp -r skills dist/skills/skills && cp -r assets/shots dist/skills/shots && cp assets/og.jpg dist/skills/og.jpg && cp assets/logo_blossom_flower_256.jpg dist/skills/favicon.jpg
 mkdir -p dist/skills/profiles && cp assets/profiles/*.jpg dist/skills/profiles/
+cp assets/_blossom_logo_t.png dist/skills/og-logo.png   # wordmark for the per-skill link-preview image (netlify/functions/og.mjs)
 # Creator rows seeded before the move point at /profiles on this host.
 mkdir -p dist/profiles && cp assets/profiles/*.jpg dist/profiles/
 cp llms.txt dist/skills/llms.txt

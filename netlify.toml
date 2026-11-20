@@ -1,5 +1,6 @@
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = ["@resvg/resvg-js"]
 
 [build]
   command = "bash build.sh"
