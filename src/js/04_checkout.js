@@ -2,7 +2,7 @@
 // Purchases belong to the signed-in Blossom user; the account email is the receipt address, and the prompt only appears when it has none.
 async function checkout(s, plan){
   const me=await requireMe(); if(!me) return;
-  const start=async(email)=>{ const j=await post('checkout',{skill:s.id, plan, email, user_id:me.userId}); if(!j.url) throw new Error('No checkout URL returned'); LS.set('email',email); location.href=j.url; await new Promise(()=>{}); };
+  const start=async(email)=>{ const j=await post('checkout',{skill:s.id, plan, email, identity:await idToken()}); if(!j.url) throw new Error('No checkout URL returned'); LS.set('email',email); location.href=j.url; await new Promise(()=>{}); };
   if(emailOk(me.email)){ start(me.email).catch(err=>toast(err.message)); return; }
   askEmail('Checkout · '+s.name, (plan==='once'?'Buy for ':'Subscribe · ')+money(s.price[plan])+(plan==='monthly'?'/mo':plan==='yearly'?'/yr':''), start);
 }

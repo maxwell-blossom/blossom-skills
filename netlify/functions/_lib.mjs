@@ -5,8 +5,23 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 
 // Public base URL: the Blossom web app proxies www.blossomsocial.com/skills/* to this site.
 export const SITE = process.env.SITE_URL || 'https://www.blossomsocial.com/skills';
-// The Blossom user id the page sends: from the web app's identity endpoint, unsigned (accepted for V1).
-export const userId = (v) => (typeof v === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(v) ? v : null);
+// The signed-in Blossom user, from the token the web app's identity endpoint signs with SKILLS_IDENTITY_SECRET
+// (HS256 JWT, 10 minutes). Blossom user ids are public, so a bare id from the page is never trusted.
+// Returns {userId, username, email} or null; a missing secret rejects everything.
+export function identity(token) {
+  const key = process.env.SKILLS_IDENTITY_SECRET;
+  if (!key || typeof token !== 'string') return null;
+  try {
+    const [h, p, mac] = token.split('.');
+    if (!h || !p || !mac) return null;
+    const expect = createHmac('sha256', key).update(`${h}.${p}`).digest('base64url');
+    if (mac.length !== expect.length || !timingSafeEqual(Buffer.from(mac), Buffer.from(expect))) return null;
+    const c = JSON.parse(Buffer.from(p, 'base64url').toString());
+    if (c.iss !== 'blossom-web' || c.aud !== 'blossom-skills' || !(c.exp > Date.now() / 1000)) return null;
+    if (typeof c.sub !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(c.sub)) return null;
+    return { userId: c.sub, username: typeof c.username === 'string' ? c.username : null, email: typeof c.email === 'string' ? c.email : null };
+  } catch { return null; }
+}
 export const TAKE = 0.20;
 
 export function db() {

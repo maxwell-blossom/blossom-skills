@@ -1,10 +1,12 @@
-// POST {skill, user_id, version, note, skill_md?} → appends to the update log (and replaces the SKILL.md when provided).
-import { db, json, bad, userId } from './_lib.mjs';
+// POST {skill, identity, version, note, skill_md?} → appends to the update log (and replaces the SKILL.md when provided).
+import { db, json, bad, identity } from './_lib.mjs';
 export default async (req) => {
   if (req.method !== 'POST') return bad('POST only', 405);
-  const { skill, user_id, version, note, skill_md } = await req.json().catch(() => ({}));
-  const owner = userId(user_id);
-  if (!skill || !owner || !version || !note) return bad('skill, user_id, version and note are required');
+  const { skill, identity: token, version, note, skill_md } = await req.json().catch(() => ({}));
+  const me = identity(token);
+  if (!me) return bad('Sign in to Blossom to update a skill', 401);
+  const owner = me.userId;
+  if (!skill || !version || !note) return bad('skill, version and note are required');
   const sb = db();
   const { data: s } = await sb.from('skills').select('id,creator').eq('id', skill).single();
   const { data: c } = s ? await sb.from('creators').select('user_id').eq('handle', s.creator).maybeSingle() : { data: null };
