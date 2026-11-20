@@ -45,33 +45,7 @@ SIDEBAR = ('<aside class="sidebar">'
   + f'<a class="sub" href="{APP}/topics" target="_blank" rel="noopener">See All Topics</a><hr><a href="https://news.blossomsocial.com/" target="_blank" rel="noopener">{NAV["buzz"]}The Weekly Buzz</a><hr>'
   f'<div class="sec"><span style="display:flex;align-items:center;gap:12px">{NAV["resources"]}Resources</span></div><div class="sub">Get Help</div>'
   + app_link('/settings', 'settings', 'Settings', ' class="bottom" style="color:var(--muted)"') + '</aside>')
-# Blossom's own MCP listings, as the Notion PRDs define them (Max, Nov 20): Connector = portfolio data only, 6 tools, no posts/feed/Beevis survey;
-# Trade Data = trade data only, 5 tools, no sentiment, $29/$249, no trial. data.py keeps the Nov 7 seed; these override it at build time.
-BLOSSOM_MCPS = {
- 'blossom-connector': dict(
-  pitch='Your Blossom portfolio in Claude, ChatGPT, Grok or Cursor. Positions, trades, dividends, watchlist and what the investors you follow are trading — the same portfolio data Beevis reads inside the app.',
-  price='Free with PRO+ · included with Blossom PRO+', auth='OAuth · sign in with your Blossom account', version='1.0.0', updated='2026-11-20',
-  tools=[('blossom_portfolio','Positions across your linked accounts: weights, cost basis, market value, day and total P&L, sector and asset type, plus cash.'),
-         ('blossom_trades','Your trades for a date range, with price, quantity, realised P&L and a link to the trade post if you shared one.'),
-         ('blossom_watchlist','Tickers you watch, with your notes.'),
-         ('blossom_dividends','Upcoming and received dividends for your holdings.'),
-         ('blossom_profile','Your public profile: handle, bio, badges and linked brokerages.'),
-         ('blossom_following_activity','What the investors you follow bought and sold, as they shared it on their posts.')],
-  about='Included with Blossom PRO+ — sign in with your Blossom account and it works; no separate charge. The Connector is read-only: it never places orders and never sees your brokerage login — it reads the same portfolio data Blossom already shows you, through the same SnapTrade link. Every response carries when your brokerage was last refreshed, so your assistant can say “as of last night”. Revoke it any time from Settings → Connected apps.',
-  log=[('1.0.0','2026-11-20','Scope set for launch: portfolio, trades, watchlist, dividends, profile and following activity. Posts and the feed are not in V1.'),('0.9.2','2026-11-04','Added dividends. Portfolio now returns weights to 2 decimals.'),('0.9.1','2026-10-21','OAuth flow works from ChatGPT developer mode.'),('0.9.0','2026-10-07','First beta. Claude and Cursor.')]),
- 'blossom-trade-data': dict(
-  pitch='$500M+ in weekly trade flows from 100K+ investors — what the crowd is buying and selling by ticker and sector, trending and unusual names, and what $1M+ portfolios are doing. Updated daily.',
-  price='$29/mo · $249/yr · paid, no free tier', auth='API key · shown on My skills after you subscribe', version='1.0.0', updated='2026-11-20',
-  tools=[('blossom_flows','Net flows for up to 20 tickers by week or day: buy and sell dollars, net, buying and selling accounts.'),
-         ('blossom_trending','Tickers ranked by this week’s or month’s flow or account count vs the prior period, by asset type and country.'),
-         ('blossom_sector_flows','Net flows by sector, ETF category or asset type, with the top tickers in each.'),
-         ('blossom_anomalies','Tickers trading unusually against their own 12-week baseline — the spike detector behind the share cards.'),
-         ('blossom_millionaire_flows','What $1M+ portfolios bought and sold, by ticker.')],
-  about='Paid MCP: $29/month or $249/year, billed by Stripe, cancel anytime. Trade data only, aggregates only: no user is identifiable, every row is at least 20 accounts, and millionaire rows are capped so one account can’t move a number. Built on the same cleaned trade data as the Blossom share cards and the Weekly Buzz, refreshed every morning. Canadian listings from 2023; US listings from December 2025.',
-  log=[('1.0.0','2026-11-20','Scope set for launch: five tools, trade data only. Sentiment is not in V1.'),('0.4.0','2026-11-06','anomalies tool: 12-week baselines, first-time buyer share.'),('0.3.0','2026-10-24','Regions: All, Canada, US, UK.'),('0.2.0','2026-10-10','sector_flows with Blossom themes.')]),
-}
 for m in MCPS:
-    if m['id'] in BLOSSOM_MCPS: m.update(BLOSSOM_MCPS[m['id']])
     if m['id'] == 'fiscal-ai': m['price'] = '$65/mo · billed by Fiscal.ai'; m['signup'] = 'https://fiscal.ai/get-started/mcp/user-type/'   # Max, Nov 8
     if m.get('creator') == 'blossom' and not m.get('logo'): m['logo'] = 'logo_blossom_flower_256.jpg'   # Blossom MCPs get the flower, like the partner logos
     m['installs'] = 0; m['rating'] = 0; m['ratings'] = 0   # real numbers: nothing is connected or rated yet (Max, Nov 8)
