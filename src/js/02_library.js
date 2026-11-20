@@ -23,7 +23,7 @@ function mcpCard(m){
 function skeletons(n){ return Array.from({length:n},()=>`<div class="card sk skel" aria-hidden="true"><div class="top"><div class="em"></div><div style="flex:1"><i style="width:60%"></i><i style="width:35%;height:12px"></i></div></div><i style="width:95%"></i><i style="width:80%"></i><div class="req"><i style="width:90px;height:24px;border-radius:999px"></i><i style="width:110px;height:24px;border-radius:999px"></i></div><div class="bot"><i style="width:120px;height:12px"></i><i style="width:56px;height:22px;border-radius:999px"></i></div></div>`).join(''); }
 function library(){
   const uses = (s,id)=>(s.requires||[]).includes(id)||(s.optional||[]).includes(id);
-  const pool = allSkills().filter(s=>state.tab==='examples' ? !isReal(s) : isReal(s));   // Skills = posted through the site; Skill Examples = the seeded ones (Max, Nov 8)
+  const pool = allSkills().filter(isReal);   // only skills posted through the site (examples removed — Max, Nov 19)
   let list = pool.filter(s=>!state.cats.length||state.cats.some(id=>uses(s,id))).filter(s=>!state.q||(s.name+' '+s.pitch+' '+s.creator+' '+s.cat).toLowerCase().includes(state.q.toLowerCase()));
   const mo = s => s.price.free?0:(s.price.monthly||(s.price.yearly||0)/12||(s.price.once||0)/12);   // monthly-equivalent price for sorting
   const sorters = {top:(a,b)=>b.rating*Math.log(b.ratings+1)-a.rating*Math.log(a.ratings+1), dl:(a,b)=>b.downloads-a.downloads, new:(a,b)=>b.updated.localeCompare(a.updated), price:(a,b)=>mo(a)-mo(b), pricehi:(a,b)=>mo(b)-mo(a)};
@@ -39,12 +39,12 @@ function library(){
       <div class="stack">${(D.hero||[]).map(b=>`<span class="ava" style="width:48px;height:48px;background:#fff"><img src="data:image/jpeg;base64,${b}" alt=""></span>`).join('')}</div>
       <div class="t">Built by verified investors on Blossom</div>
     </div></div>`;
-  const tabs = `<div class="tabs"><button class="${state.tab==='skills'?'on':''}" data-tab="skills">Skills${D.loaded?`<span class="n">${allSkills().filter(isReal).length}</span>`:''}</button><button class="${state.tab==='examples'?'on':''}" data-tab="examples">Skill Examples<span class="n">${allSkills().filter(s=>!isReal(s)).length}</span></button><button class="${state.tab==='mcps'?'on':''}" data-tab="mcps">MCPs<span class="n">${listedMcps().length}</span></button><button class="${state.tab==='learn'?'on':''}" data-tab="learn">How it works</button><span class="sp" style="flex:1"></span><a class="pill pri sm" href="${BASE}/post" style="align-self:center">+ Post a skill</a></div>`;
+  const tabs = `<div class="tabs"><button class="${state.tab==='skills'?'on':''}" data-tab="skills">Skills${D.loaded?`<span class="n">${allSkills().filter(isReal).length}</span>`:''}</button><button class="${state.tab==='mcps'?'on':''}" data-tab="mcps">MCPs<span class="n">${listedMcps().length}</span></button><button class="${state.tab==='learn'?'on':''}" data-tab="learn">How it works</button><span class="sp" style="flex:1"></span><a class="pill pri sm" href="${BASE}/post" style="align-self:center">+ Post a skill</a></div>`;
   let body='';
-  if(state.tab==='skills'||state.tab==='examples'){
+  if(state.tab==='skills'){
     const sel=state.cats; const lbl=!sel.length?'Any MCP':sel.length===1?(SHORT[sel[0]]||mcp(sel[0]).name):sel.length+' MCPs';
     body = `<div class="filters"><div class="dd" id="mcpdd"><button class="ddb ${sel.length?'on':''}" type="button"><span class="small" style="font-weight:700">Works with</span> ${esc(lbl)}<svg viewBox="0 0 12 8" width="12" height="8"><path d="M1 1l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button><div class="ddm"><label class="ddi"><input type="checkbox" data-mcpf="" ${!sel.length?'checked':''}><span>Any MCP</span></label>${D.mcps.map(m=>`<label class="ddi"><input type="checkbox" data-mcpf="${m.id}" ${sel.includes(m.id)?'checked':''}><span class="mi">${mIcon(m,true)}</span><span>${esc(m.name)}</span></label>`).join('')}</div></div><span class="small" style="margin-left:4px">${(!D.loaded&&state.tab==='skills')?'Loading…':list.length+' skill'+(list.length===1?'':'s')}</span><span class="sp"></span><label class="fsel"><span>Sort</span><select id="sort"><option value="top" ${state.sort==='top'?'selected':''}>Top rated</option><option value="dl" ${state.sort==='dl'?'selected':''}>Most downloaded</option><option value="new" ${state.sort==='new'?'selected':''}>Recently updated</option><option value="price" ${state.sort==='price'?'selected':''}>Price: low to high</option><option value="pricehi" ${state.sort==='pricehi'?'selected':''}>Price: high to low</option></select></label></div>
-      <div class="grid">${(!D.loaded&&state.tab==='skills'&&!list.length)?skeletons(3):list.map(skillCard).join('')||(state.tab==='skills'&&!state.q&&!state.cats.length?'<div class="empty">No skills posted yet. <a href="'+BASE+'/examples">See the examples</a> or <a href="'+BASE+'/post">post the first one →</a></div>':'<div class="empty">Nothing matches that yet. <a href="'+BASE+'/post">Post the first one →</a></div>')}</div>`;
+      <div class="grid">${(!D.loaded&&state.tab==='skills'&&!list.length)?skeletons(3):list.map(skillCard).join('')||(state.tab==='skills'&&!state.q&&!state.cats.length?'<div class="empty">No skills posted yet. <a href="'+BASE+'/post">Post the first one →</a></div>':'<div class="empty">Nothing matches that yet. <a href="'+BASE+'/post">Post the first one →</a></div>')}</div>`;
   } else if(state.tab==='learn'){
     body = '';   // the How-it-works section is static HTML below #app (see build.py LEARN) so crawlers get it without JS
   } else {
@@ -55,7 +55,7 @@ function library(){
 }
 function bindLibrary(){
   document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',e=>{ if(e.target.closest('a,button')) return; go(el.dataset.go); }));
-  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ go(b.dataset.tab==='mcps'?'/mcps':b.dataset.tab==='learn'?'/learn':b.dataset.tab==='examples'?'/examples':'/'); });
+  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ go(b.dataset.tab==='mcps'?'/mcps':b.dataset.tab==='learn'?'/learn':'/'); });
   const dd=$('#mcpdd'); if(dd){ const btn=dd.querySelector('.ddb'); btn.onclick=e=>{ e.stopPropagation(); dd.classList.toggle('open'); };
     dd.querySelectorAll('[data-mcpf]').forEach(cb=>cb.onchange=()=>{ const id=cb.dataset.mcpf; if(!id) state.cats=[]; else { state.cats=cb.checked?[...new Set([...state.cats,id])]:state.cats.filter(x=>x!==id); } route(); const n=$('#mcpdd'); if(n) n.classList.add('open'); });
     document.addEventListener('click', e=>{ if(!e.target.closest('#mcpdd')) dd.classList.remove('open'); }, {once:true}); }

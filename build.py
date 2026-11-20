@@ -144,7 +144,7 @@ def page(title, desc, url, extra_ld='', app=''):
 <div class="shell">{SIDEBAR}
 <div class="main"><div id="app">{app}</div>
 {LEARN}
-<footer>Blossom Skills · V1 preview · <a href="{BASE}/post">Post a skill</a> · <a href="{BASE}/examples">Skill examples</a> · <a href="{BASE}/mcps">MCPs</a> · <a href="{BASE}/learn">How it works</a> · <a href="https://www.blossomsocial.com/" target="_blank" rel="noopener">blossomsocial.com</a></footer></div></div>
+<footer>Blossom Skills · V1 preview · <a href="{BASE}/post">Post a skill</a> · <a href="{BASE}/mcps">MCPs</a> · <a href="{BASE}/learn">How it works</a> · <a href="https://www.blossomsocial.com/" target="_blank" rel="noopener">blossomsocial.com</a></footer></div></div>
 <script>{JS.replace('__DATA__', DATA).replace('__BROKERS__', BROKERS_JS).replace('__BEEVIS__', beevis_b64).replace('__FLOWER__', flower_b64).replace('__BADGE__', badge_b64)}</script>
 </body></html>"""
 
@@ -169,7 +169,7 @@ open(os.path.join(OUT, 'index.html'), 'w').write(page(HOME_T, HOME_D, SITE))
 # one static page per seeded skill and per MCP, so each tile is its own indexable URL (skills posted later are rendered by netlify/functions/page.mjs).
 # Written as <id>.html (not <id>/index.html) so Netlify's pretty URLs serve /skill/<id> directly without a 301 to a trailing slash.
 PAGES = os.path.join(OUT, 'pages'); import shutil; shutil.rmtree(PAGES, ignore_errors=True)
-urls = [SITE, SITE + '/mcps', SITE + '/examples', SITE + '/learn', SITE + '/post', SITE + '/terms']
+urls = [SITE, SITE + '/mcps', SITE + '/learn', SITE + '/post', SITE + '/terms']
 for s_ in SKILLS:
     c = CREATORS[s_['creator']]
     ld = '<script type="application/ld+json">' + json.dumps({"@context": "https://schema.org", "@type": "SoftwareApplication", "name": s_['name'], "description": s_['pitch'], "url": f"{SITE}/skill/{s_['id']}", "applicationCategory": "FinanceApplication", "operatingSystem": "Claude, ChatGPT, Grok, Cursor", "author": {"@type": "Person", "name": c['name']}, "softwareVersion": s_['version'], "dateModified": s_['updated'], "offers": {"@type": "Offer", "price": "0" if s_['price'].get('free') else str(s_['price'].get('monthly') or s_['price'].get('yearly') or s_['price'].get('once')), "priceCurrency": "CAD"}}, ensure_ascii=False) + '</script>'
@@ -181,10 +181,9 @@ for m in MCPS:
     d = os.path.join(PAGES, 'mcp'); os.makedirs(d, exist_ok=True)
     open(os.path.join(d, m['id'] + '.html'), 'w').write(page(f"{m['name']} MCP — connect it to Claude, ChatGPT, Grok and Cursor | Blossom Skills", m['pitch'], f"{SITE}/mcp/{m['id']}", '', ssr_mcp(m)))
     urls.append(f"{SITE}/mcp/{m['id']}")
-for route_ in ('mcps', 'examples', 'learn', 'post', 'terms'):
+for route_ in ('mcps', 'learn', 'post', 'terms'):
     os.makedirs(PAGES, exist_ok=True)
-    titles = {'examples': ('Skill examples — what an investing skill looks like | Blossom Skills', 'Example skills for Claude, ChatGPT, Grok and Cursor: portfolio checks, dividend planning, space stocks, TFSA room and more, built the way Blossom investors write them.'),
-              'mcps': ('MCPs for investors — Blossom Connector, Aggregate Trade Data, Fiscal.ai and brokerage MCPs | Blossom Skills', 'MCP servers that connect Claude, ChatGPT, Grok and Cursor to your portfolio, trades, the Blossom community and your brokerage.'),
+    titles = {'mcps': ('MCPs for investors — Blossom Connector, Aggregate Trade Data, Fiscal.ai and brokerage MCPs | Blossom Skills', 'MCP servers that connect Claude, ChatGPT, Grok and Cursor to your portfolio, trades, the Blossom community and your brokerage.'),
               'learn': ('What are skills and MCPs? How Blossom Skills works', 'Skills are instructions your AI assistant follows; MCPs are the connections that give it your data. How to connect an MCP, download a skill and ask in plain words.'),
               'post': ('Post a skill — publish your investing skill on Blossom', 'Upload a SKILL.md, add a pitch, sample output and screenshots, set a price, and it goes live in the Blossom Skills library.'),
               'terms': ('Creator terms — Blossom Skills', 'Terms for publishing and selling skills on Blossom Skills: ownership, the 20% platform fee, monthly payouts, updates, refunds and removal.')}
