@@ -7,11 +7,9 @@ from hero_faces import HERO
 SKILLS = [s for s in SKILLS if s['id'] not in HIDDEN]
 
 OUT = os.path.dirname(os.path.abspath(__file__))
-# Served under /skills: www.blossomsocial.com/skills/* is proxied here by the Blossom web app, and
+# Served under /skills: <APP>/skills/* is proxied here by the Blossom web app, and
 # this site keeps the same paths so links and redirects resolve the same on either host.
-BASE = os.environ.get('BASE_PATH', '/skills')
-APP = 'https://www.blossomsocial.com'
-SITE = os.environ.get('SITE_ORIGIN', APP) + BASE
+from config import APP, BASE, SITE
 
 logo_b64 = base64.b64encode(open(os.path.join(OUT, 'assets/_blossom_logo.png'), 'rb').read()).decode()
 wall_b64 = base64.b64encode(open(os.path.join(OUT, 'assets/wall_tile.jpg'), 'rb').read()).decode()
@@ -85,7 +83,7 @@ FAQ = [
   ("Do skills place trades?", "Only if the creator turns on “This skill can place orders”, and then the listing says so.\n\nEverything else reads your data and explains, screens or alerts. The Blossom Connector itself never places trades."),
 ]
 jsonld = [
-  {"@context": "https://schema.org", "@type": "WebSite", "name": "Blossom Skills & MCPs", "alternateName": "Blossom skills marketplace", "url": SITE, "publisher": {"@type": "Organization", "name": "Blossom Social", "url": "https://www.blossomsocial.com/"}},
+  {"@context": "https://schema.org", "@type": "WebSite", "name": "Blossom Skills & MCPs", "alternateName": "Blossom skills marketplace", "url": SITE, "publisher": {"@type": "Organization", "name": "Blossom Social", "url": APP + "/"}},
   {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a.replace("\n\n", " ")}} for q, a in FAQ]},
   {"@context": "https://schema.org", "@type": "ItemList", "name": "Skills for investors", "itemListElement": [
       {"@type": "ListItem", "position": i + 1, "item": {"@type": "SoftwareApplication", "name": s_['name'], "description": s_['pitch'], "url": f"{SITE}/skill/{s_['id']}", "applicationCategory": "FinanceApplication", "operatingSystem": "Claude, ChatGPT, Grok, Cursor",
@@ -136,12 +134,12 @@ def page(title, desc, url, extra_ld='', app=''):
 <style>{CSS.replace('__WALL__', wall_b64)}</style></head>
 <body>
 <div class="appbar"><a class="logo" href="{BASE}"><img src="data:image/png;base64,{logo_b64}" alt="Blossom"></a><span class="sp"></span>
-<a class="pill sec" href="https://www.blossomsocial.com/" target="_blank" rel="noopener" style="background:var(--bg);display:inline-flex;align-items:center;gap:8px"><svg viewBox="0 0 16 16" style="width:15px;height:15px;fill:currentColor"><rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.2"/><rect x="2" y="9" width="5" height="5" rx="1.2"/><rect x="9" y="9" width="5" height="5" rx="1.2"/></svg>Get App</a>
-<a class="pill pri" href="https://www.blossomsocial.com/" target="_blank" rel="noopener" style="margin-left:12px">Sign up</a></div>
+<a class="pill sec" href="{APP}/" target="_blank" rel="noopener" style="background:var(--bg);display:inline-flex;align-items:center;gap:8px"><svg viewBox="0 0 16 16" style="width:15px;height:15px;fill:currentColor"><rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.2"/><rect x="2" y="9" width="5" height="5" rx="1.2"/><rect x="9" y="9" width="5" height="5" rx="1.2"/></svg>Get App</a>
+<a class="pill pri" href="{APP}/" target="_blank" rel="noopener" style="margin-left:12px">Sign up</a></div>
 <div class="shell">{SIDEBAR}
 <div class="main"><div id="app">{app}</div>
 {LEARN}
-<footer>Blossom Skills · V1 preview · <a href="{BASE}/post">Post a skill</a> · <a href="{BASE}/mcps">MCPs</a> · <a href="{BASE}/learn">How it works</a> · <a href="https://www.blossomsocial.com/" target="_blank" rel="noopener">blossomsocial.com</a></footer></div></div>
+<footer>Blossom Skills · V1 preview · <a href="{BASE}/post">Post a skill</a> · <a href="{BASE}/mcps">MCPs</a> · <a href="{BASE}/learn">How it works</a> · <a href="{APP}/" target="_blank" rel="noopener">{APP.split("//")[-1].removeprefix("www.")}</a></footer></div></div>
 <script>{JS.replace('__DATA__', DATA).replace('__BROKERS__', BROKERS_JS).replace('__BEEVIS__', beevis_b64).replace('__FLOWER__', flower_b64).replace('__BADGE__', badge_b64)}</script>
 </body></html>"""
 

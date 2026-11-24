@@ -3,8 +3,16 @@ import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-// Public base URL: the Blossom web app proxies www.blossomsocial.com/skills/* to this site.
-export const SITE = process.env.SITE_URL || 'https://www.blossomsocial.com/skills';
+// Environment URLs; mirrors config.py. BLOSSOM_ENV takes web-app's NEXT_PUBLIC_ENV values (DEV, STAGING, PROD default);
+// APP_ORIGIN / BASE_PATH / SITE_URL override.
+const APP_ORIGINS = { DEV: 'https://dev.blossomsocial.com', STAGING: 'https://staging.blossomsocial.com', PROD: 'https://www.blossomsocial.com' };
+export const ENV = (process.env.BLOSSOM_ENV || 'PROD').trim().toUpperCase();
+if (!APP_ORIGINS[ENV]) throw new Error(`BLOSSOM_ENV must be one of ${Object.keys(APP_ORIGINS).join(', ')}, got '${ENV}'`);
+export const APP = (process.env.APP_ORIGIN || APP_ORIGINS[ENV]).replace(/\/$/, '');
+// Public base URL: the Blossom web app proxies <APP>/skills/* to this site.
+export const SITE = (process.env.SITE_URL || APP + (process.env.BASE_PATH || '/skills')).replace(/\/$/, '');
+// This Netlify host (Netlify sets URL on every deploy); used where going through the web app's proxy would loop.
+export const HOST = (process.env.URL || 'https://blossom-skills.netlify.app').replace(/\/$/, '');
 // The signed-in Blossom user, from the token the web app's identity endpoint signs with SKILLS_IDENTITY_SECRET
 // (HS256 JWT, 10 minutes). Blossom user ids are public, so a bare id from the page is never trusted.
 // Returns {userId, username, email} or null; a missing secret rejects everything.

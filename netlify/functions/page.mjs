@@ -1,8 +1,7 @@
 // GET /skills/skill/<id> for skills that have no static page (posted through the site after the last build).
 // Takes the built index.html, swaps in the skill's title/description/canonical/JSON-LD and a crawler-visible summary; the SPA then renders the full page.
-import { db, SITE } from './_lib.mjs';
+import { db, SITE, HOST } from './_lib.mjs';
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const HOST = process.env.URL || 'https://blossom-skills.netlify.app';   // this host (always reachable; SITE only resolves once the web app proxies /skills)
 let shell = null, shellAt = 0;
 async function getShell() {
   if (shell && Date.now() - shellAt < 300000) return shell;

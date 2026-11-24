@@ -1,14 +1,14 @@
 // GET /skills/api/og?skill=<id> → 1200×630 PNG for link previews (og:image) of one skill.
 // Drawn as SVG and rasterised with resvg; Nunito is fetched once per cold start and kept in memory.
 import { Resvg } from '@resvg/resvg-js';
-import { db, SITE } from './_lib.mjs';
+import { db, SITE, HOST } from './_lib.mjs';
 import { writeFileSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
 export const config = { path: '/skills/api/og' };
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // Blossom wordmark: build.sh copies assets/_blossom_logo_t.png to dist/skills/og-logo.png; fetched once per cold start from this host.
-const LOGO_URL = `${process.env.URL || 'https://blossom-skills.netlify.app'}/skills/og-logo.png`;
+const LOGO_URL = `${HOST}/skills/og-logo.png`;
 // Fonts: Nunito 800 (headings) and 600 (body) from fontsource, as WOFF, converted to TTF because resvg reads sfnt only
 // (and resvg-js 2.6 ignores fontBuffers, so they go through /tmp as files). The fontsource build names the families
 // "Nunito ExtraLight ExtraBold" / "Nunito ExtraLight SemiBold" — the SVG below selects by those names. Pinned to 5.0.14.

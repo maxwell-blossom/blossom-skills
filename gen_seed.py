@@ -7,7 +7,7 @@ import data
 from hidden import HIDDEN
 data.SKILLS = [s for s in data.SKILLS if s['id'] not in HIDDEN]
 
-SITE = os.environ.get('SITE_URL', 'https://www.blossomsocial.com/skills')
+from config import SITE
 
 def q(v):
     if v is None: return 'null'
