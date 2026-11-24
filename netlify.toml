@@ -8,6 +8,7 @@
 
 # One deploy per web-app environment: main is PROD, the develop branch deploy is DEV
 # (develop--blossom-skills.netlify.app, proxied by dev. and staging.blossomsocial.com/skills). See config.py.
+# These only reach the build. Functions read BLOSSOM_ENV from the Netlify UI variable (Branch deploys = DEV), so keep both in step.
 [context.production.environment]
   BLOSSOM_ENV = "PROD"
 
