@@ -5,3 +5,11 @@
 [build]
   command = "bash build.sh"
   publish = "dist"
+
+# One deploy per web-app environment: main is PROD, the develop branch deploy is DEV
+# (develop--blossom-skills.netlify.app, proxied by dev. and staging.blossomsocial.com/skills). See config.py.
+[context.production.environment]
+  BLOSSOM_ENV = "PROD"
+
+[context.develop.environment]
+  BLOSSOM_ENV = "DEV"

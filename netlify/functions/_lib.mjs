@@ -11,8 +11,9 @@ if (!APP_ORIGINS[ENV]) throw new Error(`BLOSSOM_ENV must be one of ${Object.keys
 export const APP = (process.env.APP_ORIGIN || APP_ORIGINS[ENV]).replace(/\/$/, '');
 // Public base URL: the Blossom web app proxies <APP>/skills/* to this site.
 export const SITE = (process.env.SITE_URL || APP + (process.env.BASE_PATH || '/skills')).replace(/\/$/, '');
-// This Netlify host (Netlify sets URL on every deploy); used where going through the web app's proxy would loop.
-export const HOST = (process.env.URL || 'https://blossom-skills.netlify.app').replace(/\/$/, '');
+// This deploy's own Netlify host, used where going through the web app's proxy would loop. URL is always the
+// production host, so branch deploys (develop) use DEPLOY_PRIME_URL instead.
+export const HOST = ((process.env.CONTEXT !== 'production' && process.env.DEPLOY_PRIME_URL) || process.env.URL || 'https://blossom-skills.netlify.app').replace(/\/$/, '');
 // The signed-in Blossom user, from the token the web app's identity endpoint signs with SKILLS_IDENTITY_SECRET
 // (HS256 JWT, 10 minutes). Blossom user ids are public, so a bare id from the page is never trusted.
 // Returns {userId, username, email} or null; a missing secret rejects everything.
