@@ -44,7 +44,7 @@ SIDEBAR = ('<aside class="sidebar">'
   f'<div class="sec"><span style="display:flex;align-items:center;gap:12px">{NAV["resources"]}Resources</span></div><div class="sub">Get Help</div>'
   + app_link('/settings', 'settings', 'Settings', ' class="bottom" style="color:var(--muted)"') + '</aside>')
 for m in MCPS:
-    if m['id'] == 'fiscal-ai': m['price'] = '$65/mo · billed by Fiscal.ai'; m['signup'] = 'https://fiscal.ai/get-started/mcp/user-type/'   # Max, Nov 8
+    if m['id'] == 'fiscal-ai': m['price'] = '$65/mo · billed by Fiscal.ai'; m['signup'] = 'https://fiscal.ai/get-started/mcp/individual/consent/?via=blossommcp'   # Fiscal partner link (Rewardful), Max Nov 24
     if m.get('creator') == 'blossom' and not m.get('logo'): m['logo'] = 'logo_blossom_flower_256.jpg'   # Blossom MCPs get the flower, like the partner logos
     m['installs'] = 0; m['rating'] = 0; m['ratings'] = 0   # real numbers: nothing is connected or rated yet (Max, Nov 8)
     if m.get('logo'): m['logo_b64'] = base64.b64encode(open(os.path.join(OUT, 'assets', m['logo']), 'rb').read()).decode()
