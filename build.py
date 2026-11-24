@@ -44,7 +44,7 @@ SIDEBAR = ('<aside class="sidebar">'
   f'<div class="sec"><span style="display:flex;align-items:center;gap:12px">{NAV["resources"]}Resources</span></div><div class="sub">Get Help</div>'
   + app_link('/settings', 'settings', 'Settings', ' class="bottom" style="color:var(--muted)"') + '</aside>')
 for m in MCPS:
-    if m['id'] == 'fiscal-ai': m['price'] = '$65/mo · billed by Fiscal.ai'; m['signup'] = 'https://fiscal.ai/get-started/mcp/user-type/'   # Max, Nov 8
+    if m['id'] == 'fiscal-ai': m['price'] = '$65/mo · billed by Fiscal.ai'; m['signup'] = 'https://fiscal.ai/get-started/mcp/individual/consent/?via=blossommcp'   # Fiscal partner link (Rewardful), Max Nov 24
     if m.get('creator') == 'blossom' and not m.get('logo'): m['logo'] = 'logo_blossom_flower_256.jpg'   # Blossom MCPs get the flower, like the partner logos
     m['installs'] = 0; m['rating'] = 0; m['ratings'] = 0   # real numbers: nothing is connected or rated yet (Max, Nov 8)
     if m.get('logo'): m['logo_b64'] = base64.b64encode(open(os.path.join(OUT, 'assets', m['logo']), 'rb').read()).decode()
@@ -185,7 +185,4 @@ for route_ in ('mcps', 'learn', 'post', 'terms'):
     open(os.path.join(PAGES, route_ + '.html'), 'w').write(page(titles[route_][0], titles[route_][1], f"{SITE}/{route_}"))
 open(os.path.join(OUT, 'sitemap.xml'), 'w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + ''.join(f'<url><loc>{u}</loc></url>' for u in urls) + '</urlset>\n')
 open(os.path.join(OUT, 'robots.txt'), 'w').write(f'User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\nSitemap: {SITE}/api/sitemap\n')
-# Netlify: static pages win; functions are under <BASE>/api so the web app's proxy reaches them; skills published later (no static page)
-# are rendered by the page function; everything else under <BASE> is the SPA shell (<BASE>.html, so /skills needs no trailing-slash 301).
-open(os.path.join(OUT, '_redirects'), 'w').write(f'/  {BASE}  301\n{BASE}/api/*  /.netlify/functions/:splat  200\n{BASE}/skill/*  /.netlify/functions/page  200\n{BASE}/*  {BASE}.html  200\n')
 print('index.html', round(len(open(os.path.join(OUT, 'index.html')).read())/1024), 'KB;', len(SKILLS), 'skills,', len(MCPS), 'mcps;', len(urls), 'urls in sitemap')
