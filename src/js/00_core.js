@@ -63,6 +63,14 @@ const TAKE = 0.20, STRIPE_PCT = 0.029, STRIPE_FIX = 0.30;
 let ME = null, ID_TOKEN = null, ID_AT = 0;
 async function loadMe(){ for(let i=0;i<2;i++){ const r=await fetch('/api/skills/identity',{method:'POST'}).catch(()=>null); if(r&&r.ok){ const j=await r.json(); ME=j.user||null; ID_TOKEN=j.token||null; ID_AT=Date.now(); return ME; } if(r&&r.status!==401) break; } return null; }
 const meReady = loadMe();
+// Top bar: once the web app says who is signed in, "Sign up" becomes an account pill (avatar + handle → My skills) and the
+// body gets .signed-in (mobile drops Get App so the bar fits). Signed out, or on the bare Netlify host where there is no
+// identity endpoint, the bar stays as built.
+meReady.then(me=>{ const su=document.querySelector('.appbar .pill.pri'); if(!me||!su) return;
+  const name=me.name||me.username||'', handle=me.username?'@'+me.username:(name||'Signed in');
+  const ava=me.photoPath?`<span class="ava"><img src="${esc(me.photoPath)}" alt=""></span>`:`<span class="ava" style="background:#7361F7">${esc(name.slice(0,1).toUpperCase()||'B')}</span>`;
+  const el=document.createElement('a'); el.className='pill sec me'; el.href=BASE+'/purchases'; el.title='Signed in · My skills';
+  el.innerHTML=`${ava}<span class="who">${esc(handle)}</span><span class="ok">Signed in</span>`; su.replaceWith(el); document.body.classList.add('signed-in'); });
 // The token lasts 10 minutes, so one older than 8 is replaced before it goes to a function.
 async function idToken(){ await meReady; if(!ID_TOKEN || Date.now()-ID_AT > 8*60e3) await loadMe(); return ID_TOKEN; }
 // Sign in on the Blossom web app and come back here. On a Blossom host that is this origin, so dev stays on dev;
@@ -130,4 +138,3 @@ function md(src){
   }
   return out.join('');
 }
-
