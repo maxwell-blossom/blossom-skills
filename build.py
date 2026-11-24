@@ -185,4 +185,7 @@ for route_ in ('mcps', 'learn', 'post', 'terms'):
     open(os.path.join(PAGES, route_ + '.html'), 'w').write(page(titles[route_][0], titles[route_][1], f"{SITE}/{route_}"))
 open(os.path.join(OUT, 'sitemap.xml'), 'w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + ''.join(f'<url><loc>{u}</loc></url>' for u in urls) + '</urlset>\n')
 open(os.path.join(OUT, 'robots.txt'), 'w').write(f'User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\nSitemap: {SITE}/api/sitemap\n')
+# Netlify: static pages win; functions are under <BASE>/api so the web app's proxy reaches them; skills published later (no static page)
+# are rendered by the page function; everything else under <BASE> is the SPA shell (<BASE>.html, so /skills needs no trailing-slash 301).
+open(os.path.join(OUT, '_redirects'), 'w').write(f'/  {BASE}  301\n{BASE}/api/*  /.netlify/functions/:splat  200\n{BASE}/skill/*  /.netlify/functions/page  200\n{BASE}/*  {BASE}.html  200\n')
 print('index.html', round(len(open(os.path.join(OUT, 'index.html')).read())/1024), 'KB;', len(SKILLS), 'skills,', len(MCPS), 'mcps;', len(urls), 'urls in sitemap')
