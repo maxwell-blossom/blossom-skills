@@ -39,7 +39,7 @@ function library(){
       <div class="stack">${(D.hero||[]).map(b=>`<span class="ava" style="width:48px;height:48px;background:#fff"><img src="data:image/jpeg;base64,${b}" alt=""></span>`).join('')}</div>
       <div class="t">Built by verified investors on Blossom</div>
     </div></div>`;
-  const tabs = `<div class="tabs"><button class="${state.tab==='skills'?'on':''}" data-tab="skills">Skills${D.loaded?`<span class="n">${allSkills().filter(isReal).length}</span>`:''}</button><button class="${state.tab==='mcps'?'on':''}" data-tab="mcps">MCPs<span class="n">${listedMcps().length}</span></button><button class="${state.tab==='learn'?'on':''}" data-tab="learn">How it works</button><span class="sp" style="flex:1"></span><a class="pill sec sm" href="${BASE}/purchases" style="align-self:center;margin-right:8px">My skills</a><a class="pill pri sm" href="${BASE}/post" style="align-self:center">+ Post a skill</a></div>`;
+  const tabs = `<div class="tabs"><button class="${state.tab==='skills'?'on':''}" data-tab="skills">Skills${D.loaded?`<span class="n">${allSkills().filter(isReal).length}</span>`:''}</button><button class="${state.tab==='mcps'?'on':''}" data-tab="mcps">MCPs<span class="n">${listedMcps().length}</span></button><button class="${state.tab==='learn'?'on':''}" data-tab="learn">How it works</button><span class="sp"></span><div class="tabact"><a class="pill sec sm" href="${BASE}/purchases">My skills</a><a class="pill pri sm" href="${BASE}/post">+ Post a skill</a></div></div>`;
   let body='';
   if(state.tab==='skills'){
     const sel=state.cats; const lbl=!sel.length?'Any MCP':sel.length===1?(SHORT[sel[0]]||mcp(sel[0]).name):sel.length+' MCPs';
@@ -62,4 +62,3 @@ function bindLibrary(){
   const so=$('#sort'); if(so) so.onchange=()=>{ state.sort=so.value; route(); };
   const q=$('#q'); if(q){ const doSearch=()=>{ state.q=q.value; route(); const nq=$('#q'); if(nq){nq.focus(); nq.setSelectionRange(nq.value.length,nq.value.length);} }; q.addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(); }); $('#qgo').onclick=doSearch; }
 }
-
