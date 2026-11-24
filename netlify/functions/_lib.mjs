@@ -34,7 +34,8 @@ export function identity(token) {
 export const TAKE = 0.20;
 
 export function db() {
-  const url = process.env.SUPABASE_DATABASE_URL || process.env.SUPABASE_URL;
+  // SUPABASE_URL first: SUPABASE_DATABASE_URL is set for every context by Netlify's Supabase extension, so branch deploys override it here.
+  const url = process.env.SUPABASE_URL || process.env.SUPABASE_DATABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
   if (!url || !key) throw new Error('Supabase is not configured (SUPABASE_DATABASE_URL / SUPABASE_SERVICE_ROLE_KEY)');
   return createClient(url, key, { auth: { persistSession: false } });
