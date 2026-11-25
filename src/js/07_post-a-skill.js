@@ -62,7 +62,7 @@ function wizard(){
         <label class="check ${w.nosecret?'ok':''}"><input type="checkbox" id="nosecret" ${w.nosecret?'checked':''}> No API keys, account numbers or personal data in the file</label>
         <label class="check ${w.agree?'ok':''}"><input type="checkbox" id="agree" ${w.agree?'checked':''}> I own this content and agree to the <a href="${BASE}/terms" target="_blank" rel="noopener">Creator terms</a> (20% platform fee${w.model!=='free'?', paid out monthly by Blossom':''})</label>
       </div></div>
-      <div class="review-ok"><span>🍼</span><div><b>Goes live immediately.</b> Blossom spot-checks new listings after the fact — a skill that places orders must say so, and anything misleading gets unlisted.</div></div>`;
+      <div class="review-ok"><span>🌼</span><div><b>Goes live immediately.</b> Blossom spot-checks new listings after the fact — a skill that places orders must say so, and anything misleading gets unlisted.</div></div>`;
   }
   const canNext = w.step===1 ? (w.type==='mcp' || !!w.text) : w.step===2 ? (w.name && w.pitch && w.handle) : w.step===3 ? (w.model==='free' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(w.payEmail)) : true;
   const last = w.step===5;
