@@ -15,6 +15,8 @@ async function loadCatalogue(){
     const revs = {}; (j.reviews||[]).forEach(r=>{ (revs[r.skill_id]=revs[r.skill_id]||[]).push([r.handle||'blossom', +r.stars||0, r.body||'', (r.created_at||'').slice(0,10)]); });
     D.remote = (j.skills||[]).filter(s=>!have.has(s.id)).map(s=>({ id:s.id, creator:s.creator, name:s.name, emoji:s.emoji||'🧾', icon:s.icon_url||null, cat:s.cat||'Portfolio', pitch:s.pitch||'', highlights:s.highlights||[], requires:s.requires||[], optional:s.optional||[], trades:!!s.trades, price:s.price||{free:true}, cadence:s.cadence||'Monthly', prompts:(s.prompts||[]).length?s.prompts:['Run '+s.name], sample:s.sample||'', shots:s.shots||[], skill:s.skill_md||'', status:'live', downloads:s.downloads||0, rating:+s.rating||0, ratings:s.ratings||0, version:s.version||'1.0.0', updated:(s.updated_at||'').slice(0,10), log:logs[s.id]||[['1.0.0',(s.updated_at||'').slice(0,10),'Initial release']], reviews:revs[s.id]||[], remote:true }));
     D.loaded = true; route();
+    // Signed in: pull this account's purchases once so cards and pages show "Yours" on any device, not just the one that bought.
+    meReady.then(me=>{ if(me && MY.owned===null && state.prev!=='purchases') loadMySkills().then(()=>{ if(Object.keys(tokens()).length) route(); }); });
   } catch(e) { D.loaded = true; console.warn('catalogue', e.message); }
 }
 const BROKERS = __BROKERS__;

@@ -3,3 +3,4 @@
 /* post-a-skill: screenshot thumbnails in the drop box */
 .drop .thumbs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}.drop .th{position:relative;width:96px;height:64px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:#fff}.drop .th img{width:100%;height:100%;object-fit:cover}.drop .th em{position:absolute;left:4px;bottom:4px;font-style:normal;font-size:10px;font-weight:800;background:var(--purple);color:#fff;border-radius:999px;padding:1px 6px}
 .lnk{background:none;border:0;padding:0;margin-left:10px;color:var(--purple);font:inherit;font-size:13px;font-weight:700;cursor:pointer}.lnk:hover{text-decoration:underline}
+.price.own{background:var(--greent);color:#157A48}
