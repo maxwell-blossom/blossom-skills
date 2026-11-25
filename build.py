@@ -106,7 +106,7 @@ VOICE = ('<div class="lv">'
   '<h3>“MCPs are about to change how we all invest.”</h3>'
   '<p>Zac connected Claude to his Questrade account. Ten minutes after the open he gets a briefing on every position and watchlist name, talks the decisions through, and approves any order with one swipe on his phone. His morning routine went from half an hour to five minutes.</p>'
   '<blockquote>“It is basically like having a professional trading consultant to talk to every morning about your strategy and plans.”</blockquote>'
-  f'<div class="acts"><a class="pill pri sm" href="{ZAC_POST}" target="_blank" rel="noopener">Read Zac’s post</a><a class="pill out sm" href="{BASE}/mcp/questrade-mcp">Questrade MCP</a></div>'
+  f'<div class="acts"><a class="pill pri sm" href="{ZAC_POST}" target="_blank" rel="noopener">Read Zac’s post</a></div>'
   '</div>'
   f'<img class="shot" src="{ZAC_SHOT}" alt="Zac’s morning briefing from Claude: a watchlist with price, trigger and stop levels for each name" loading="lazy">'
   '</div>')
