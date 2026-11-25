@@ -14,5 +14,8 @@ export default async (req) => {
   } else {
     await sb.from('downloads').insert({ skill_id: id });
   }
+  // The listing shows skills.downloads; keep it equal to the number of logged downloads so the count on the page is real.
+  const { count } = await sb.from('downloads').select('id', { count: 'exact', head: true }).eq('skill_id', id);
+  if (typeof count === 'number') await sb.from('skills').update({ downloads: count }).eq('id', id);
   return new Response(s.skill_md + '\n', { headers: { 'content-type': 'text/markdown; charset=utf-8', 'content-disposition': 'attachment; filename="SKILL.md"', 'cache-control': 'no-store' } });
 };
