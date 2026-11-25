@@ -8,9 +8,12 @@ async function loadCatalogue(){
   try {
     const j = await api('catalogue');
     const have = new Set(D.skills.map(s=>s.id));
-    (j.creators||[]).forEach(c=>{ if(!D.creators[c.handle]) D.creators[c.handle] = {handle:c.handle, user_id:c.user_id||null, name:c.name, badge:c.badge, bio:c.bio||'', followers:c.followers||0, photo_url:c.photo_url, url:c.url||null, following:c.following||0, stocks:c.stocks||0, portfolio:Array.isArray(c.portfolio)?c.portfolio:null, color:'#7361F7', initials:(c.name||c.handle).slice(0,1).toUpperCase()}; });
+    // Seeded creators keep their seeded name/bio/photo, but take what only the account can supply (profile url, user id) from the row the creator claimed by posting.
+    (j.creators||[]).forEach(c=>{ const k=D.creators[c.handle]; if(k){ if(!k.url&&c.url) k.url=c.url; if(!k.user_id&&c.user_id) k.user_id=c.user_id; if(!k.photo&&!k.photo_b64&&!k.photo_url&&c.photo_url) k.photo_url=c.photo_url; return; }
+      D.creators[c.handle] = {handle:c.handle, user_id:c.user_id||null, name:c.name, badge:c.badge, bio:c.bio||'', followers:c.followers||0, photo_url:c.photo_url, url:c.url||null, following:c.following||0, stocks:c.stocks||0, portfolio:Array.isArray(c.portfolio)?c.portfolio:null, color:'#7361F7', initials:(c.name||c.handle).slice(0,1).toUpperCase()}; });
     const logs = {}; (j.updates||[]).forEach(u=>{ (logs[u.skill_id]=logs[u.skill_id]||[]).push([u.version, (u.created_at||'').slice(0,10), u.note]); });
-    D.remote = (j.skills||[]).filter(s=>!have.has(s.id)).map(s=>({ id:s.id, creator:s.creator, name:s.name, emoji:s.emoji||'🧾', icon:s.icon_url||null, cat:s.cat||'Portfolio', pitch:s.pitch||'', highlights:s.highlights||[], requires:s.requires||[], optional:s.optional||[], trades:!!s.trades, price:s.price||{free:true}, cadence:s.cadence||'Monthly', prompts:(s.prompts||[]).length?s.prompts:['Run '+s.name], sample:s.sample||'', shots:s.shots||[], skill:s.skill_md||'', status:'live', downloads:s.downloads||0, rating:+s.rating||0, ratings:s.ratings||0, version:s.version||'1.0.0', updated:(s.updated_at||'').slice(0,10), log:logs[s.id]||[['1.0.0',(s.updated_at||'').slice(0,10),'Initial release']], reviews:[], remote:true }));
+    const revs = {}; (j.reviews||[]).forEach(r=>{ (revs[r.skill_id]=revs[r.skill_id]||[]).push([r.handle||'blossom', +r.stars||0, r.body||'', (r.created_at||'').slice(0,10)]); });
+    D.remote = (j.skills||[]).filter(s=>!have.has(s.id)).map(s=>({ id:s.id, creator:s.creator, name:s.name, emoji:s.emoji||'🧾', icon:s.icon_url||null, cat:s.cat||'Portfolio', pitch:s.pitch||'', highlights:s.highlights||[], requires:s.requires||[], optional:s.optional||[], trades:!!s.trades, price:s.price||{free:true}, cadence:s.cadence||'Monthly', prompts:(s.prompts||[]).length?s.prompts:['Run '+s.name], sample:s.sample||'', shots:s.shots||[], skill:s.skill_md||'', status:'live', downloads:s.downloads||0, rating:+s.rating||0, ratings:s.ratings||0, version:s.version||'1.0.0', updated:(s.updated_at||'').slice(0,10), log:logs[s.id]||[['1.0.0',(s.updated_at||'').slice(0,10),'Initial release']], reviews:revs[s.id]||[], remote:true }));
     D.loaded = true; route();
   } catch(e) { D.loaded = true; console.warn('catalogue', e.message); }
 }
@@ -49,7 +52,7 @@ async function downloadSkill(s){
   else { const t=tokens()[s.id]; if(!t){ toast('Buy the skill or restore access first'); return; }
     const r=await fetch(API+'download?skill='+encodeURIComponent(s.id)+'&token='+encodeURIComponent(t)); if(!r.ok){ toast(await r.text()); return; } text=await r.text(); }
   const blob=new Blob([text],{type:'text/markdown'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=s.id+'-SKILL.md'; a.click();
-  const d=LS.get('dl',{}); d[s.id]=(d[s.id]||0)+1; LS.set('dl',d); toast('Downloaded — drop it into Claude and say “save this as a skill”');
+  const d=LS.get('dl',{}); d[s.id]=(d[s.id]||0)+1; LS.set('dl',d); toast('Downloaded — “Install it” below has the steps for Claude, Claude Code, Cursor, ChatGPT and Grok', 8000);
 }
 async function restoreAccess(){
   const me=await requireMe(); if(!me) return;
@@ -63,6 +66,14 @@ const TAKE = 0.20, STRIPE_PCT = 0.029, STRIPE_FIX = 0.30;
 let ME = null, ID_TOKEN = null, ID_AT = 0;
 async function loadMe(){ for(let i=0;i<2;i++){ const r=await fetch('/api/skills/identity',{method:'POST'}).catch(()=>null); if(r&&r.ok){ const j=await r.json(); ME=j.user||null; ID_TOKEN=j.token||null; ID_AT=Date.now(); return ME; } if(r&&r.status!==401) break; } return null; }
 const meReady = loadMe();
+// Top bar: once the web app says who is signed in, "Sign up" becomes an account pill (avatar + handle → My skills) and the
+// body gets .signed-in (mobile drops Get App so the bar fits). Signed out, or on the bare Netlify host where there is no
+// identity endpoint, the bar stays as built.
+meReady.then(me=>{ const su=document.querySelector('.appbar .pill.pri'); if(!me||!su) return;
+  const name=me.name||me.username||'', handle=me.username?'@'+me.username:(name||'Signed in');
+  const ava=me.photoPath?`<span class="ava"><img src="${esc(me.photoPath)}" alt=""></span>`:`<span class="ava" style="background:#7361F7">${esc(name.slice(0,1).toUpperCase()||'B')}</span>`;
+  const el=document.createElement('a'); el.className='pill sec me'; el.href=BASE+'/purchases'; el.title='Signed in · My skills';
+  el.innerHTML=`${ava}<span class="who">${esc(handle)}</span><span class="ok">Signed in</span>`; su.replaceWith(el); document.body.classList.add('signed-in'); });
 // The token lasts 10 minutes, so one older than 8 is replaced before it goes to a function.
 async function idToken(){ await meReady; if(!ID_TOKEN || Date.now()-ID_AT > 8*60e3) await loadMe(); return ID_TOKEN; }
 // Sign in on the Blossom web app and come back here. On a Blossom host that is this origin, so dev stays on dev;
@@ -88,7 +99,7 @@ const owned = () => LS.get('owned', {});
 // Page header in the Blossom app style: round back button on the left, title (and a line under it) centred.
 function pageHead(label, back){ return `<div class="phead"><a class="pback" href="${BASE}${back}" aria-label="Back">${IC.back}</a><a class="pbl" href="${BASE}${back}">${esc(label)}</a></div>`; }
 const isReal = s => !!(s.remote || s.mine);   // published through the site, as opposed to the seeded examples
-function toast(t){ document.querySelectorAll('.toast').forEach(x=>x.remove()); const el=document.createElement('div'); el.className='toast'; el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),2200); }
+function toast(t, ms){ document.querySelectorAll('.toast').forEach(x=>x.remove()); const el=document.createElement('div'); el.className='toast'; el.textContent=t; el.onclick=()=>el.remove(); document.body.appendChild(el); setTimeout(()=>el.remove(), ms||2200); }
 function copy(t, msg='Copied'){ navigator.clipboard?.writeText(t).then(()=>toast(msg),()=>toast(msg)); }
 function avatar(h, size=28){
   const c = creator(h); if(!c) return `<span class="ava" style="width:${size}px;height:${size}px;background:#ddd"></span>`;
@@ -130,4 +141,3 @@ function md(src){
   }
   return out.join('');
 }
-
