@@ -27,10 +27,15 @@ export default async (req) => {
   const { data: clash } = await sb.from('skills').select('id').eq('id', id).maybeSingle();
   if (clash) id = `${id}-${Math.random().toString(36).slice(2, 6)}`;
   const price = k.price && typeof k.price === 'object' ? k.price : { free: true };
+  // Screenshots and icon arrive as data URIs from the wizard. Keep them bounded: ≤4 shots, JPEG/PNG only, ≤400KB each; icon ≤60KB.
+  const isImg = (d) => typeof d === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(d);
+  const shots = (Array.isArray(k.shots) ? k.shots : []).slice(0, 4).map(x => Array.isArray(x) ? x : [x, '']).filter(([d]) => isImg(d) && d.length <= 400 * 1024 * 1.4).map(([d, cap]) => [d, String(cap || '').slice(0, 120)]);
+  const icon_url = isImg(k.icon_url) && k.icon_url.length <= 60 * 1024 * 1.4 ? k.icon_url : null;
+  const highlights = (Array.isArray(k.highlights) ? k.highlights : []).map(h => String(h || '').trim().slice(0, 110)).filter(Boolean).slice(0, 3);
   const { error } = await sb.from('skills').insert({
-    id, creator: handle, name: k.name, emoji: k.emoji || '🧾', icon_url: k.icon_url || null, cat: k.cat || 'Portfolio', pitch: k.pitch || '',
-    highlights: k.highlights || [], requires: k.requires || [], optional: k.optional || [], trades: !!k.trades, price, cadence: k.cadence || 'Monthly',
-    prompts: k.prompts || [], sample: k.sample || '', shots: k.shots || [], skill_md: k.skill_md, status: 'live', version: '1.0.0',
+    id, creator: handle, name: k.name, emoji: k.emoji || '🧾', icon_url, cat: k.cat || 'Portfolio', pitch: k.pitch || '',
+    highlights, requires: k.requires || [], optional: k.optional || [], trades: !!k.trades, price, cadence: k.cadence || 'Monthly',
+    prompts: k.prompts || [], sample: k.sample || '', shots, skill_md: k.skill_md, status: 'live', version: '1.0.0',
   });
   if (error) return bad(error.message, 500);
   await sb.from('skill_updates').insert({ skill_id: id, version: '1.0.0', note: k.first || 'Initial release' });
