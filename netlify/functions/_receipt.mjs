@@ -26,13 +26,12 @@ export function receiptEmail({ skill: s, plan, amount, download, page, mySkills,
   </td></tr>
   <tr><td style="height:14px"></td></tr>
   <tr><td style="background:#ffffff;border:1px solid ${BORDER};border-radius:16px;padding:24px 28px">
-    <div style="font-size:16px;font-weight:800;color:${INK};margin:0 0 12px">Next: add it to Claude</div>
+    <div style="font-size:16px;font-weight:800;color:${INK};margin:0 0 12px">Next: add it to your AI</div>
     <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:14.5px;line-height:1.5;color:${INK}">
-      <tr><td valign="top" style="padding:0 10px 10px 0;color:${PURPLE};font-weight:800">1</td><td style="padding:0 0 10px">Put <code style="font-family:Menlo,Consolas,monospace;font-size:13px;background:${BG};padding:1px 5px;border-radius:4px">SKILL.md</code> in a folder named <code style="font-family:Menlo,Consolas,monospace;font-size:13px;background:${BG};padding:1px 5px;border-radius:4px">${esc(s.id)}</code> and zip it.</td></tr>
-      <tr><td valign="top" style="padding:0 10px 10px 0;color:${PURPLE};font-weight:800">2</td><td style="padding:0 0 10px">In Claude: <b>Settings → Capabilities → Skills → Upload skill</b>, choose the zip. <span style="color:${MUTED}">(In the desktop app or Claude Code you can also drop the file into a chat and say “Save this as a skill.”)</span></td></tr>
-      <tr><td valign="top" style="padding:0 10px 0 0;color:${PURPLE};font-weight:800">3</td><td>Ask: <i>“${esc(prompt)}”</i></td></tr>
+      <tr><td valign="top" style="padding:0 10px 10px 0;color:${PURPLE};font-weight:800">1</td><td style="padding:0 0 10px"><b>Download</b> the skill with the button above — it’s one file, <code style="font-family:Menlo,Consolas,monospace;font-size:13px;background:${BG};padding:1px 5px;border-radius:4px">SKILL.md</code>.</td></tr>
+      <tr><td valign="top" style="padding:0 10px 10px 0;color:${PURPLE};font-weight:800">2</td><td style="padding:0 0 10px"><b>Add it to your assistant.</b> It works in Claude, Claude Code, Cursor, ChatGPT and Grok — the <a href="${page}" style="color:${PURPLE}">skill page</a> has the exact steps for each under “How to install”.</td></tr>
+      <tr><td valign="top" style="padding:0 10px 0 0;color:${PURPLE};font-weight:800">3</td><td><b>Ask:</b> <i>“${esc(prompt)}”</i></td></tr>
     </table>
-    <p style="margin:14px 0 0;color:${MUTED};font-size:13.5px">Using Claude Code, Cursor, ChatGPT or Grok instead? The steps for each are on <a href="${page}" style="color:${PURPLE}">the skill page</a>.</p>
   </td></tr>
   <tr><td style="padding:18px 6px 0;color:${MUTED};font-size:12.5px;line-height:1.5">
     ${keep}<br>
@@ -50,11 +49,10 @@ Date: ${date}
 Download SKILL.md: ${download}
 (Also in My skills on any device: ${mySkills})
 
-Next: add it to Claude
-1. Put SKILL.md in a folder named ${s.id} and zip it.
-2. In Claude: Settings → Capabilities → Skills → Upload skill, choose the zip. (In the desktop app or Claude Code you can also drop the file into a chat and say "Save this as a skill.")
+Next: add it to your AI
+1. Download the skill with the link above — it's one file, SKILL.md.
+2. Add it to your assistant. It works in Claude, Claude Code, Cursor, ChatGPT and Grok — the skill page has the exact steps for each under "How to install": ${page}
 3. Ask: "${prompt}"
-Claude Code, Cursor, ChatGPT or Grok: ${page}
 
 ${keep.replace(/<[^>]+>/g, '')}
 Receipt ${sessionId} · Questions or refunds: skills@blossomsocial.com
