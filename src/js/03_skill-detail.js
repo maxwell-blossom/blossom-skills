@@ -67,7 +67,7 @@ function detail(id){
     <div class="blk"><h3>${IC.gear}How to install</h3>${installBlock(s)}</div>
     <div class="blk"><details class="skillmd"><summary>${IC.file}SKILL.md <span class="small" style="font-weight:600">· what your AI actually reads</span></summary><pre>${esc(s.skill)}</pre></details></div>`;
   else if(state.dtab==='updates') body = `
-    <div class="promise"><span class="em">🔁</span><div><b style="color:var(--ink)">Updated ${esc(s.cadence.toLowerCase())}.</b> <span class="small">${s.price.free?'Free skills are updated at the creator’s pace.':'Subscribers get an email update when the new update ships.'}</span></div></div>
+    <div class="promise"><span class="em">🔁</span><div><b style="color:var(--ink)">Updated ${esc(s.cadence.toLowerCase())}.</b> <span class="small">${s.price.free?'Free skills are updated at the creator’s pace.':'Every update is logged here and included while you’re subscribed.'}</span></div></div>
     <div class="tl">${s.log.map(([v,d,n],i)=>`<div class="tli"><span class="v">v${v}</span><span class="d">${new Date(d).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'})}</span>${i===0?'<span class="tag">Latest</span>':''}<p>${esc(n)}</p></div>`).join('')}</div>`;
   else body = `
     <div class="rsum"><div><div class="big">${s.rating.toFixed(1)}</div><div>${stars(s.rating)}</div><div class="small">${s.ratings} ratings · ${fmtN(s.downloads)} downloads</div></div><div class="bars">${dist.map(([n,v])=>`<div><span>${n} ★</span><i><b style="width:${Math.round(v/tot*100)}%"></b></i><span>${Math.round(v/tot*100)}%</span></div>`).join('')}</div></div>
@@ -78,7 +78,7 @@ function detail(id){
   return `<div class="wrap">${pageHead('Skills', '/')}
   <div class="detail"><div>
     <div class="card"><div class="dhead"><div class="em">${sIcon(s)}</div><div style="flex:1;min-width:0"><h1>${esc(s.name)}${s.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h1><div class="pitch">${esc(s.pitch)}</div><div class="by">${avatar(s.creator,24)} <b>${esc(c?.name||s.creator)}</b> @${esc(s.creator)} ${badge(c)}</div>
-      <div class="stats"><div><b>${fmtN(s.downloads)}</b>downloads</div><div><b>${stars(s.rating)} ${s.rating.toFixed(1)}</b>${s.ratings} ratings</div><div><b>v${s.version}</b>updated ${ago(s.updated)}</div><div><b>${esc(s.cadence.split(',')[0].slice(0,16))}</b>update cadence</div></div></div></div>
+      <div class="stats"><div><b>${fmtN(s.downloads)}</b>downloads</div><div><b>${stars(s.rating)} ${s.rating.toFixed(1)}</b>${s.ratings} ratings</div><div><b>v${s.version}</b>updated ${ago(s.updated)}</div><div><b>${esc(s.cadence.split(',')[0])}</b>update cadence</div></div></div></div>
       ${tabsHtml}<div class="dbody">${body}</div></div>
   </div>
   <div class="side">
