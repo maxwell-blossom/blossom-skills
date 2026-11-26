@@ -64,10 +64,13 @@ function wizard(){
       </div></div>
       <div class="review-ok"><span>🌼</span><div><b>Goes live immediately.</b> Blossom spot-checks new listings after the fact — a skill that places orders must say so, and anything misleading gets unlisted.</div></div>`;
   }
-  const canNext = w.step===1 ? (w.type==='mcp' || !!w.text) : w.step===2 ? (w.name && w.pitch && w.handle) : w.step===3 ? (w.model==='free' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(w.payEmail)) : true;
+  // What still blocks Continue, in words — shown beside the button, and as a toast if the greyed button is clicked (Max, Nov 26: a disabled button with no reason is a dead end).
+  const missing = w.step===1 ? (w.text?[]:['your SKILL.md']) : w.step===2 ? [!w.name&&'a name', !w.pitch&&'a one-line pitch'].filter(Boolean) : w.step===3 ? ((w.model==='free'||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(w.payEmail))?[]:['a valid payout email']) : w.step===5 ? ((w.tested&&w.nosecret&&w.agree)?[]:['the three checks']) : [];
+  const canNext = !missing.length;
+  const need = missing.length ? `Add ${missing.join(' and ')} to continue` : '';
   const last = w.step===5;
   return `<div class="wrap">${pageHead('Skills','/')}<div class="wiz">${nav}<div class="card wpanel">${p}
-    <div class="wnav"><button class="pill sec" id="back" ${w.step===1?'style="visibility:hidden"':''}>← Back</button><div class="small">Step ${w.step} of 5</div><button class="pill ${canNext?'pri':'dis'}" id="next" ${canNext?'':'disabled'}>${last?'Publish':'Continue →'}</button></div></div></div></div>`;
+    <div class="wnav"><button class="pill sec" id="back" ${w.step===1?'style="visibility:hidden"':''}>← Back</button><div class="small">Step ${w.step} of 5</div><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end"><span class="small" id="need" style="color:var(--muted)">${esc(need)}</span><button class="pill ${canNext?'pri':'dis'}" id="next" data-need="${esc(need)}">${last?'Publish':'Continue →'}</button></div></div></div></div></div>`;
 }
 const TEMPLATE = `---\nname: my-checklist\ndescription: A short checklist run against the user's Blossom portfolio. Use when the user asks to "run my checklist".\n---\n\n# My checklist\n\n## Needs\n- Blossom Connector MCP: blossom_portfolio\n\n## Steps\n1. Call blossom_portfolio. Keep holdings with weight >= 1%.\n2. For each holding, check: (your rule here).\n3. Output a table: Ticker | Weight | Check | Note.\n\n## Rules\n- Only describe what the user holds. No buy/sell recommendations.\n`;
 function bindWizard(){
@@ -80,9 +83,10 @@ function bindWizard(){
   document.querySelectorAll('[data-emoji]').forEach(b=>b.onclick=()=>{ w.emoji=b.dataset.emoji; w.icon=null; re(); });
   const iu=$('#iconup'), ifl=$('#iconfile'); if(iu){ iu.onclick=()=>ifl.click(); ifl.onchange=()=>{ const f=ifl.files[0]; if(!f) return; const img=new Image(); img.onload=()=>{ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); const m=Math.min(img.width,img.height); x.drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,128,128); w.icon=c.toDataURL('image/png'); re(); }; img.src=URL.createObjectURL(f); }; }
   const bindVal=(id,key,cb)=>{ const el=$(id); if(el) el.oninput=()=>{ w[key]=el.type==='number'?+el.value:el.value; if(cb) cb(); }; };
-  bindVal('#name','name'); bindVal('#cat','cat');
+  const needNow=()=>{ const m=[!w.name&&'a name', !w.pitch&&'a one-line pitch'].filter(Boolean); const need=m.length?`Add ${m.join(' and ')} to continue`:''; const n=$('#next'); if(n){ n.className='pill '+(need?'dis':'pri'); n.dataset.need=need; } const h=$('#need'); if(h) h.textContent=need; };
+  bindVal('#name','name',needNow); bindVal('#cat','cat');
   bindVal('#sample','sample'); bindVal('#first','first'); bindVal('#cadence','cadence');
-  const pitch=$('#pitch'); if(pitch) pitch.oninput=()=>{ w.pitch=pitch.value.replace(/\n/g,' '); pitch.nextElementSibling.textContent=(160-w.pitch.length)+' characters left. Say what the user gets, in their words.'; };
+  const pitch=$('#pitch'); if(pitch) pitch.oninput=()=>{ w.pitch=pitch.value.replace(/\n/g,' '); pitch.nextElementSibling.textContent=(160-w.pitch.length)+' characters left. Say what the user gets, in their words.'; needNow(); };
   document.querySelectorAll('[data-prompt]').forEach(i=>i.oninput=()=>{ w.prompts[+i.dataset.prompt]=i.value; });
   document.querySelectorAll('[data-mcp]').forEach(sel=>sel.onchange=()=>{ const id=sel.dataset.mcp; w.requires=w.requires.filter(x=>x!==id); w.optional=w.optional.filter(x=>x!==id); if(sel.value==='req') w.requires.push(id); if(sel.value==='opt') w.optional.push(id); re(); });
   const sd=$('#sdrop'), sf=$('#sfile'); if(sd){ sd.onclick=()=>sf.click(); sf.onchange=async()=>{ const fs=[...sf.files].slice(0,4); w.shots=fs.map(f=>f.name); w.shotData=(await Promise.all(fs.map(shotData))).filter(Boolean); re(); }; }
@@ -92,11 +96,11 @@ function bindWizard(){
   document.querySelectorAll('[data-sug]').forEach(b=>b.onclick=()=>{ w[w.model]=+b.dataset.sug; re(); });
   const ay=$('#addyear'); if(ay) ay.onchange=()=>{ w.addyear=ay.checked; re(); };
   document.querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>{ w.payMethod=b.dataset.pay; re(); });
-  const pe=$('#payemail'); if(pe) pe.oninput=()=>{ const was=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(w.payEmail); w.payEmail=pe.value.trim(); const now=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(w.payEmail); if(was!==now){ const n=$('#next'); n.className='pill '+(now||w.model==='free'?'pri':'dis'); n.disabled=!(now||w.model==='free'); } };
+  const pe=$('#payemail'); if(pe) pe.oninput=()=>{ const was=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(w.payEmail); w.payEmail=pe.value.trim(); const now=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(w.payEmail); if(was!==now){ const n=$('#next'); const ok=now||w.model==='free'; n.className='pill '+(ok?'pri':'dis'); n.dataset.need=ok?'':'Add a valid payout email to continue'; $('#need').textContent=n.dataset.need; } };
   const tdx=$('#trades'); if(tdx) tdx.onchange=()=>{ w.trades=tdx.checked; re(); };
   ['tested','nosecret','agree'].forEach(k=>{ const el=$('#'+k); if(el) el.onchange=()=>{ w[k]=el.checked; re(); }; });
   $('#back').onclick=()=>{ w.step=Math.max(1,w.step-1); re(); };
-  $('#next').onclick=()=>{ if(w.step<5){ if(w.step===1 && w.type==='skill'){ const fm=parseFront(w.text); if(!w.name && fm.name) w.name=fm.name.replace(/[-_]/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); if(!w.pitch && fm.description) w.pitch=pitchFrom(fm.description); } w.step++; re(); return; }
+  $('#next').onclick=()=>{ if($('#next').dataset.need){ toast($('#next').dataset.need); return; } if(w.step<5){ if(w.step===1 && w.type==='skill'){ const fm=parseFront(w.text); if(!w.name && fm.name) w.name=fm.name.replace(/[-_]/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); if(!w.pitch && fm.description) w.pitch=pitchFrom(fm.description); } w.step++; re(); return; }
     if(!(w.tested&&w.nosecret&&w.agree)){ toast('Tick the three checks first'); return; }
     const id=(w.name||'skill').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+Math.random().toString(36).slice(2,6);
     const h=w.handle.toLowerCase().replace(/[^a-z0-9._-]/g,'');
