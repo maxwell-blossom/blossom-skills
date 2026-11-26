@@ -14,3 +14,5 @@
 .f .checks label.check{margin:0;font-weight:600;color:var(--ink);font-size:14px}.check input[type=checkbox]{margin:0}
 /* library card screenshot: taller strip (Max, Nov 26: +40%) */
 .grid .sk .shot{height:185px}
+/* MCP card tool list: names never break mid-word */
+.sk .hl li b{flex:none}.sk .hl li span{min-width:0}
