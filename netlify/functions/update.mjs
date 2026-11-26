@@ -5,13 +5,14 @@
 //   highlights           up to 3 short lines for "What it does" on the listing
 //   pitch, prompts, sample, shots   the rest of the listing (shots: data URIs like publish; [] clears them)
 //   name, emoji, icon_url, cat, requires, optional, trades, cadence   the rest of what the edit wizard can change
+//   unlist: true         takes the listing out of the library; buyers keep their download (status 'unlisted', never deleted)
 // Every branch checks the signed-in Blossom account owns the skill's creator handle.
 import { db, json, bad, identity, SITE, sign } from './_lib.mjs';
 import { sendMail, esc } from './_mail.mjs';
 const num = (v) => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null; };
 export default async (req) => {
   if (req.method !== 'POST') return bad('POST only', 405);
-  const { skill, identity: token, version, note, skill_md, price, payout, highlights, pitch, prompts, sample, shots, name, emoji, icon_url, cat, requires, optional, trades, cadence } = await req.json().catch(() => ({}));
+  const { skill, identity: token, version, note, skill_md, price, payout, highlights, pitch, prompts, sample, shots, name, emoji, icon_url, cat, requires, optional, trades, cadence, unlist } = await req.json().catch(() => ({}));
   const me = identity(token);
   if (!me) return bad('Sign in to Blossom to update a skill', 401);
   const owner = me.userId;
@@ -47,6 +48,7 @@ export default async (req) => {
   if (ids(requires)) patch.requires = ids(requires); if (ids(optional)) patch.optional = ids(optional);
   if (typeof trades === 'boolean') patch.trades = trades;
   if (typeof cadence === 'string' && cadence.trim()) patch.cadence = cadence.trim().slice(0, 40);
+  if (unlist === true) patch.status = 'unlisted';
   if (Array.isArray(prompts)) patch.prompts = prompts.map(p => String(p || '').trim().slice(0, 200)).filter(Boolean).slice(0, 6);
   if (typeof sample === 'string') patch.sample = sample.slice(0, 20000);
   if (Array.isArray(shots)) {
