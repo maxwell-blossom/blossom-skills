@@ -7,7 +7,7 @@ function skillCard(s){
     ${(s.shots||[]).length?`<img class="shot" src="${shotUrl(s.shots[0][0])}" alt="" loading="lazy">`:''}
     ${(s.highlights||[]).length?`<ul class="hl">${s.highlights.slice(0,3).map(h=>`<li>${esc(h)}</li>`).join('')}</ul>`:''}
     <div class="req">${reqChips(s)}</div>
-    <div class="bot"><span class="l"><span>${fmtN(s.downloads)} downloads</span><span>${s.ratings?`${stars(s.rating)} <b style="color:var(--ink)">${s.rating.toFixed(1)}</b> <span style="color:var(--muted)">(${s.ratings})</span>`:'No ratings yet'}</span></span>${!s.price.free&&tokens()[s.id]?`<span class="price own">✓ Yours</span>`:`<span class="price ${p.cls}">${p.t}</span>`}<span class="upd">v${s.version} · updated ${ago(s.updated)}</span></div>
+    <div class="bot"><span class="l"><span>${fmtN(s.downloads)} downloads</span><span>${s.ratings?`${stars(s.rating)} <b style="color:var(--ink)">${s.rating.toFixed(1)}</b> <span style="color:var(--muted)">(${s.ratings})</span>`:'No ratings yet'}</span></span>${!s.price.free&&tokens()[s.id]?`<span class="price own">✓ ${owned()[s.id]==='once'?'Purchased':'Subscribed'}</span>`:`<span class="price ${p.cls}">${p.t}</span>`}<span class="upd">v${s.version} · updated ${ago(s.updated)}</span></div>
   </div>`;
 }
 function mcpCard(m){

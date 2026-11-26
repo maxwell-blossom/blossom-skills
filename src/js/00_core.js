@@ -37,9 +37,9 @@ const post = (name, body) => api(name, {method:'POST', headers:{'content-type':'
 const tokens = () => LS.get('tokens', {});
 const emailOk = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e||'');
 // Small email prompt used by checkout and restore.
-function askEmail(title, cta, onGo, hint){
+function askEmail(title, cta, onGo, hint, preset){
   const m=document.createElement('div'); m.className='modal'; m.innerHTML=`<div class="mbox"><div class="mh"><span style="font-size:18px">✉️</span><b>${esc(title)}</b><button class="x" id="mx">×</button></div><div class="mb">
-    <div class="f"><label>Your email</label><input type="email" id="em" placeholder="you@example.com" value="${esc(LS.get('email',''))}" autocomplete="email"><div class="hint">${esc(hint||"Only for your receipt. The download unlocks right here as soon as you’ve paid.")}</div></div>
+    <div class="f"><label>Your email</label><input type="email" id="em" placeholder="you@example.com" value="${esc(preset||LS.get('email',''))}" autocomplete="email"><div class="hint">${esc(hint||"Only for your receipt. The download unlocks right here as soon as you’ve paid.")}</div></div>
     <button class="pill pri lg" id="go" style="margin-top:4px">${esc(cta)}</button></div></div>`;
   document.body.appendChild(m); const inp=$('#em',m); inp.focus();
   $('#mx',m).onclick=()=>m.remove(); m.addEventListener('click',e=>{ if(e.target===m) m.remove(); });

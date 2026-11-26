@@ -31,7 +31,7 @@ MCPS = [
              ('blossom_sector_flows','Net flows by sector, ETF category or asset type, with the top tickers in each.'),
              ('blossom_anomalies','Tickers trading unusually against their own 12-week baseline — the spike detector behind the share cards.'),
              ('blossom_millionaire_flows','What $1M+ portfolios bought and sold, by ticker.')],
-      about='Paid MCP: $39/month or $349/year, billed by Stripe, cancel anytime. Trade data only, aggregates only: no user is identifiable, every row is at least 20 accounts, and millionaire rows are capped so one account can’t move a number. Built on the same cleaned trade data as the Blossom share cards and the Weekly Buzz, refreshed every morning. Canadian listings from 2023; US listings from December 2025.',
+      about='Trade data only, aggregates only: no user is identifiable, every row is at least 20 accounts, and millionaire rows are capped so one account can’t move a number. Built on the same cleaned trade data as the Blossom share cards and the Weekly Buzz, refreshed every morning. Canadian listings from 2023; US listings from December 2025.',
       log=[('1.0.0','2026-11-20','Scope set for launch: five tools, trade data only. Sentiment is not in V1.'),('0.4.0','2026-11-06','anomalies tool: 12-week baselines, first-time buyer share.'),('0.3.0','2026-10-24','Regions: All, Canada, US, UK.'),('0.2.0','2026-10-10','sector_flows with Blossom themes.')]),
  dict(id='fiscal-ai', kind='mcp', emoji='🧮', logo='fiscal_logo_96.png', name='Fiscal.ai', creator=None, creator_name='Fiscal.ai', third_party=True, status='Partner',
       pitch='Financial statements, ratios, estimates, segments, filings and prices for 100,000+ companies. The fundamentals layer for any skill.',
