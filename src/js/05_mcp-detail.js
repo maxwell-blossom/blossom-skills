@@ -31,7 +31,7 @@ function mcpDetail(id){
   </div>
   <div class="side"><div class="card buy"><div class="amt" style="font-size:22px">${esc(m.price.split('·')[0].trim())}</div><div class="sub">${esc(m.price.split('·').slice(1).join('·').trim()||(m.creator?'Read-only access to your own data':'Billed by Fiscal.ai'))}</div>
     <button class="pill pri lg" id="connect">${m.creator?'Coming soon · Join the waitlist':(m.signup?'Get it on fiscal.ai':'Copy install command')}</button>
-    <ul class="incl"><li>OAuth — no keys to paste</li><li>Revoke any time</li><li>${m.creator?'Never places trades, never sees your broker login':'Partner MCP · support via Fiscal.ai'}</li></ul></div></div></div></div>`;
+    <ul class="incl">${m.id==='blossom-trade-data'?`<li>API key, shown once on My skills</li><li>Cancel any time from My skills</li><li>Aggregates only — no user is identifiable</li>`:m.creator?`<li>OAuth — no keys to paste</li><li>Revoke any time from Settings → Connected apps</li><li>Never places trades, never sees your broker login</li>`:m.id==='fiscal-ai'?`<li>OAuth in the browser, or an API key</li><li>Billed by Fiscal.ai</li><li>Partner MCP · support via Fiscal.ai</li>`:`<li>Sign-in: ${esc(m.auth.split(/[;·]/)[0].trim())}</li><li>${m.trades?'⚠️ Can place orders — skills from Blossom only read from it':'Read-only: never places trades'}</li><li>By ${esc(m.creator_name)} · not built or supported by Blossom</li>`}</ul></div></div></div></div>`;
 }
 function bindMcp(id){
   const m=mcp(id);

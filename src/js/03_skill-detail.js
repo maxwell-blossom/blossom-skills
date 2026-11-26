@@ -3,7 +3,7 @@ function planOptions(s){
   const p=s.price, o=[];
   if(p.free) return [{k:'free',label:'Free',price:0}];
   if(p.once) o.push({k:'once',label:'One-time',price:p.once,sub:'Yours forever · includes updates for 12 months'});
-  if(p.monthly) o.push({k:'monthly',label:'Monthly',price:p.monthly,sub:'Cancel anytime'});
+  if(p.monthly) o.push({k:'monthly',label:'Monthly',price:p.monthly});
   if(p.yearly) o.push({k:'yearly',label:'Yearly',price:p.yearly,sub:p.monthly?`Save ${Math.round((1-p.yearly/(p.monthly*12))*100)}%`:'Billed once a year'});
   return o;
 }
@@ -46,8 +46,8 @@ function detail(id){
   const c=creator(s.creator); const plans=planOptions(s); if(!state.plan||!plans.find(p=>p.k===state.plan)) state.plan=plans.find(p=>p.k==='yearly')?.k||plans[0].k;
   const have = s.price.free || !!tokens()[s.id];
   const sel = plans.find(p=>p.k===state.plan);
-  const cta = s.price.free ? `<button class="pill pri lg" id="get">Get it free</button>` : have ? `<button class="pill teal lg" id="get">${owned()[s.id]==='once'?'Download · it’s yours':'Download · you’re subscribed'}</button>` : `<button class="pill pri lg" id="buy">${sel.k==='once'?`Buy for ${money(sel.price)}`:`Subscribe · ${money(sel.price)}/${sel.k==='monthly'?'mo':'yr'}`}</button>`;
-  const amt = s.price.free ? `<div class="amt">Free</div><div class="sub">Free. Needs the Blossom Connector (included with <b>Blossom PRO+</b>).</div>` : `<div class="amt">${money(sel.price)}<small> ${sel.k==='monthly'?'/ month':sel.k==='yearly'?'/ year':'one-time'}</small></div><div class="sub">${sel.k==='once'?'Pay once. Updates included for 12 months.':'Every update while you’re subscribed. Cancel anytime.'}</div>`;
+  const cta = s.price.free ? `<button class="pill pri lg" id="get">Get it free</button>` : have ? `<button class="pill teal lg" id="get">✓ ${owned()[s.id]==='once'?'Purchased':'Subscribed'} · Download</button>` : `<button class="pill pri lg" id="buy">${sel.k==='once'?`Buy for ${money(sel.price)}`:`Subscribe · ${money(sel.price)}/${sel.k==='monthly'?'mo':'yr'}`}</button>`;
+  const amt = s.price.free ? `<div class="amt">Free</div><div class="sub">Free. Needs the Blossom Connector (included with <b>Blossom PRO+</b>).</div>` : `<div class="amt">${money(sel.price)}<small> ${sel.k==='monthly'?'/ month':sel.k==='yearly'?'/ year':'one-time'}</small></div>${sel.k==='once'?`<div class="sub">Pay once. Updates included for 12 months.</div>`:''}`;
   const planSel = plans.length>1 ? `<div class="plans">${plans.map(p=>`<label class="plan ${state.plan===p.k?'on':''}"><input type="radio" name="plan" value="${p.k}" ${state.plan===p.k?'checked':''}><div><b>${p.label}</b>${p.sub?(p.k==='yearly'&&/Save/.test(p.sub)?` <span class="save">${p.sub}</span>`:`<div class="small">${p.sub}</div>`):''}</div><span class="pr">${money(p.price)}${p.k==='monthly'?'/mo':p.k==='yearly'?'/yr':''}</span></label>`).join('')}</div>` : '';
   // Star breakdown: real counts only. Until ratings exist the bars stay empty — no invented distribution.
   const dist = [5,4,3,2,1].map(n=>[n, (s.reviews||[]).filter(r=>r[1]===n).length]);
@@ -112,6 +112,8 @@ function bindDetail(id){
   bindCopy();
   const g=$('#get'); if(g) g.onclick=()=>downloadSkill(s);
   const rs=$('#restore'); if(rs) rs.onclick=e=>{ e.preventDefault(); restoreAccess(); };
+  // Warm the checkout function (cold starts were most of the lag before Stripe opened — Max, Nov 26). GET answers 405 instantly; the container stays warm for the click.
+  if($('#buy') && !window.__warmed){ window.__warmed=1; fetch(API+'checkout',{method:'GET'}).catch(()=>{}); }
   const b=$('#buy'); if(b) b.onclick=()=>{ const t=b.textContent; b.disabled=true; b.textContent='Opening secure checkout…'; checkout(s, state.plan).catch(()=>{}).finally(()=>{ if(document.body.contains(b)){ b.disabled=false; b.textContent=t; } }); };
   // Share = the public link (with its own preview image via og.mjs); the native share sheet where there is one, else copy it for a Blossom post.
   const sh=$('#share'); if(sh) sh.onclick=async()=>{ const url=SITE+'/skill/'+s.id; if(navigator.share){ try{ await navigator.share({title:s.name, text:s.pitch, url}); return; }catch(e){ if(e.name==='AbortError') return; } } copy(url,'Link copied — paste it in a Blossom post'); };
