@@ -156,7 +156,7 @@ def page(title, desc, url, extra_ld='', app=''):
 <div class="shell">{SIDEBAR}
 <div class="main"><div id="app">{app}</div>
 {LEARN}
-<footer>Blossom Skills · V1 preview · <a href="{BASE}/post">Post a skill</a> · <a href="{BASE}/mcps">MCPs</a> · <a href="{BASE}/learn">How it works</a> · <a href="{APP}/" target="_blank" rel="noopener">{APP.split("//")[-1].removeprefix("www.")}</a></footer></div></div>
+<footer>Blossom Skills · <a href="{BASE}/post">Post a skill</a> · <a href="{BASE}/mcps">MCPs</a> · <a href="{BASE}/learn">How it works</a> · <a href="{APP}/" target="_blank" rel="noopener">{APP.split("//")[-1].removeprefix("www.")}</a></footer></div></div>
 <script>{JS.replace('__DATA__', DATA).replace('__BROKERS__', BROKERS_JS).replace('__BEEVIS__', beevis_b64).replace('__FLOWER__', flower_b64).replace('__BADGE__', badge_b64)}</script>
 </body></html>"""
 
