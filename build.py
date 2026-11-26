@@ -9,7 +9,7 @@ SKILLS = [s for s in SKILLS if s['id'] not in HIDDEN]
 OUT = os.path.dirname(os.path.abspath(__file__))
 # Served under /skills: <APP>/skills/* is proxied here by the Blossom web app, and
 # this site keeps the same paths so links and redirects resolve the same on either host.
-from config import APP, BASE, SITE
+from config import APP, BASE, GTM_ID, SITE
 
 logo_b64 = base64.b64encode(open(os.path.join(OUT, 'assets/_blossom_logo.png'), 'rb').read()).decode()
 wall_b64 = base64.b64encode(open(os.path.join(OUT, 'assets/wall_tile.jpg'), 'rb').read()).decode()
@@ -137,6 +137,7 @@ def page(title, desc, url, extra_ld='', app=''):
     t = _p(title); d = _p(desc)
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<script>(function(w,d,s,l,i){{w[l]=w[l]||[];w[l].push({{'gtm.start':new Date().getTime(),event:'gtm.js'}});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);}})(window,document,'script','dataLayer','{GTM_ID}');</script>
 <title>{t}</title>
 <meta name="description" content="{d}">
 <meta name="keywords" content="skills marketplace, MCP marketplace, investing skills, Claude skills, ChatGPT investing, MCP for investors, Model Context Protocol, agent skills, Blossom Social, portfolio MCP, agentic trading">
@@ -150,6 +151,7 @@ def page(title, desc, url, extra_ld='', app=''):
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>{CSS.replace('__WALL__', wall_b64)}</style></head>
 <body>
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id={GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div class="appbar"><a class="logo" href="{BASE}"><img src="data:image/png;base64,{logo_b64}" alt="Blossom"></a><span class="sp"></span>
 <a class="pill sec" href="{APP}/" target="_blank" rel="noopener" style="background:var(--bg);display:inline-flex;align-items:center;gap:8px"><svg viewBox="0 0 16 16" style="width:15px;height:15px;fill:currentColor"><rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.2"/><rect x="2" y="9" width="5" height="5" rx="1.2"/><rect x="9" y="9" width="5" height="5" rx="1.2"/></svg>Get App</a>
 <a class="pill pri" href="{APP}/" target="_blank" rel="noopener" style="margin-left:12px">Sign up</a></div>
