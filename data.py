@@ -24,7 +24,7 @@ MCPS = [
       log=[('1.0.0','2026-11-20','Scope set for launch: portfolio, trades, watchlist, dividends, profile and following activity. Posts and the feed are not in V1.')]),
  dict(id='blossom-trade-data', kind='mcp', emoji='📊', name='Blossom Aggregate Trade Data', creator='blossom', status='',
       pitch='$500M+ in weekly trade flows from 100K+ investors — what the crowd is buying and selling by ticker and sector, trending and unusual names, and what $1M+ portfolios are doing. Updated daily.',
-      installs=0, rating=0, ratings=0, updated='2026-11-20', version='1.0.0', price='$29/mo · $249/yr · paid, no free tier',
+      installs=0, rating=0, ratings=0, updated='2026-11-20', version='1.0.0', price='$39/mo · $349/yr · paid, no free tier',
       url='https://mcp.blossomsocial.com/trade-data', auth='API key · shown on My skills after you subscribe',
       tools=[('blossom_flows','Net flows for up to 20 tickers by week or day: buy and sell dollars, net, buyers and sellers, and how concentrated the flow is (top-account share bucket).'),
              ('blossom_trending','Tickers ranked by this week’s or month’s flow or account count vs the prior period, by asset type and country.'),
