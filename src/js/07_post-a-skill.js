@@ -12,8 +12,9 @@ function highlightsFrom(t){ const fm=parseFront(t); const out=[]; (fm.descriptio
 function shotData(f){ return new Promise(res=>{ const img=new Image(); img.onload=()=>{ const k=Math.min(1,1200/img.width); const c=document.createElement('canvas'); c.width=Math.round(img.width*k); c.height=Math.round(img.height*k); c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(img.src); res(c.toDataURL('image/jpeg',0.8)); }; img.onerror=()=>res(null); img.src=URL.createObjectURL(f); }); }
 function payout(price){ const take=price*TAKE; return {fee:0, take, you:price-take}; }   // Blossom covers card processing out of its 20%
 function wizard(){
-  const w=state.wiz; const steps=['Your skill','Listing','Pricing','Updates','Review & publish']; w.type='skill';
-  const nav = `<div class="card wsteps">${steps.map((t,i)=>`<div class="${w.step===i+1?'on':w.step>i+1?'done':''}" ${w.step>i+1?`data-step="${i+1}" role="button" title="Back to ${t}"`:''}><i>${w.step>i+1?'✓':i+1}</i>${t}</div>`).join('')}</div>`;
+  const w=state.wiz; const steps=['Your skill','Listing','Pricing','Updates',w.edit?'Review & save':'Review & publish']; w.type='skill';
+  // Completed steps are links back; in edit mode every step is (nothing is incomplete, it's a live listing).
+  const nav = `<div class="card wsteps">${steps.map((t,i)=>{ const jump=w.step!==i+1&&(w.edit||w.step>i+1); return `<div class="${w.step===i+1?'on':w.step>i+1?'done':''} ${jump?'jump':''}" ${jump?`data-step="${i+1}" role="button" title="Go to ${t}"`:''}><i>${w.step>i+1?'✓':i+1}</i>${t}</div>`; }).join('')}</div>`;
   let p='';
   if(w.step===1){
     const fm=parseFront(w.text); const ok=!!w.text||!!w.edit; const checks=[[fm.name&&fm.description?`Found the name and description: <b>${esc(fm.name)}</b> — ${esc(fm.description.split('.')[0].slice(0,90))}…`:'No name or description yet — add them on the next step, or tell your AI to put a <code>name</code> and <code>description</code> at the top of the file', !!(fm.name&&fm.description), 'soft'],['A reasonable size (under 20 KB)', ok&&w.text.length<20000],['No API keys or secrets inside', ok&&!/sk_live|sk_test|api[_-]?key\s*[:=]\s*\S{12,}|ghp_[A-Za-z0-9]{20,}/i.test(w.text)]];

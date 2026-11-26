@@ -10,5 +10,7 @@
 /* wizard: the field Continue is waiting on turns red (Max, Nov 26) */
 .f.bad>label{color:var(--red)}.f.bad>label:after{content:" · required";font-weight:600}.f.bad input[type=text],.f.bad textarea{border-color:var(--red);box-shadow:0 0 0 3px var(--redt)}.f.bad .drop{border-color:var(--red);background:var(--redt)}.f.bad .hint{color:var(--red)}#need.bad{color:var(--red);font-weight:700}
 /* wizard: completed steps are clickable; publish checks are not bold form labels */
-.wsteps div.done{cursor:pointer}.wsteps div.done:hover{background:var(--bg)}
+.wsteps div.jump{cursor:pointer}.wsteps div.jump:hover{background:var(--bg)}
 .f .checks label.check{margin:0;font-weight:600;color:var(--ink);font-size:14px}.check input[type=checkbox]{margin:0}
+/* library card screenshot: taller strip (Max, Nov 26: +40%) */
+.grid .sk .shot{height:185px}

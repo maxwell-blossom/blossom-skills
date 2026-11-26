@@ -6,7 +6,8 @@
 //   pitch, prompts, sample, shots   the rest of the listing (shots: data URIs like publish; [] clears them)
 //   name, emoji, icon_url, cat, requires, optional, trades, cadence   the rest of what the edit wizard can change
 // Every branch checks the signed-in Blossom account owns the skill's creator handle.
-import { db, json, bad, identity } from './_lib.mjs';
+import { db, json, bad, identity, SITE, sign } from './_lib.mjs';
+import { sendMail, esc } from './_mail.mjs';
 const num = (v) => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null; };
 export default async (req) => {
   if (req.method !== 'POST') return bad('POST only', 405);
@@ -16,7 +17,7 @@ export default async (req) => {
   const owner = me.userId;
   if (!skill) return bad('skill is required');
   const sb = db();
-  const { data: s } = await sb.from('skills').select('id,creator,price').eq('id', skill).single();
+  const { data: s } = await sb.from('skills').select('id,creator,price,name').eq('id', skill).single();
   const { data: c } = s ? await sb.from('creators').select('user_id').eq('handle', s.creator).maybeSingle() : { data: null };
   if (!c?.user_id || c.user_id !== owner) return bad('Not your skill', 403);
   const patch = {};
@@ -53,7 +54,19 @@ export default async (req) => {
     patch.shots = shots.slice(0, 4).map(x => Array.isArray(x) ? x : [x, '']).filter(([d]) => isImg(d) && d.length <= 400 * 1024 * 1.4).map(([d, cap]) => [d, String(cap || '').slice(0, 120)]);
   }
   if (Object.keys(patch).length) { const { error } = await sb.from('skills').update(patch).eq('id', skill); if (error) return bad(error.message, 500); }
-  if (version && note) await sb.from('skill_updates').insert({ skill_id: skill, version: patch.version, note: String(note).slice(0, 2000) });
+  if (version && note) {
+    await sb.from('skill_updates').insert({ skill_id: skill, version: patch.version, note: String(note).slice(0, 2000) });
+    // Everyone with an active purchase hears about it (the Manage page promises this). One email per address; a personal download link for paid skills.
+    const { data: buyers } = await sb.from('purchases').select('buyer_email').eq('skill_id', skill).eq('status', 'active').limit(2000);
+    const emails = [...new Set((buyers || []).map(b => String(b.buyer_email || '').trim().toLowerCase()).filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)))];
+    const name = patch.name || s.name || skill, v = patch.version, n = String(note).slice(0, 2000), page = `${SITE}/skill/${skill}`;
+    await Promise.allSettled(emails.map(to => {
+      const dl = `${SITE}/api/download?skill=${encodeURIComponent(skill)}&token=${encodeURIComponent(sign(skill, to))}`;
+      const html = `<div style="font-family:Nunito,'Helvetica Neue',Arial,sans-serif;font-size:15px;color:#171717;line-height:1.5"><p><b>${esc(name)}</b> was just updated to v${esc(v)}.</p><p style="white-space:pre-wrap">${esc(n)}</p><p><a href="${dl}" style="color:#7361F7">Download the latest SKILL.md</a> · <a href="${page}" style="color:#7361F7">See the listing</a></p><p style="color:#72777F;font-size:13px">You're getting this because you have ${esc(name)} on Blossom Skills.</p></div>`;
+      const text = `${name} was just updated to v${v}.\n\n${n}\n\nDownload the latest SKILL.md: ${dl}\nListing: ${page}`;
+      return sendMail({ to, subject: `${name} updated to v${v}`, html, text });
+    }));
+  }
   if (payout && typeof payout === 'object') {
     const method = payout.method === 'paypal' ? 'paypal' : payout.method === 'etransfer' ? 'etransfer' : null;
     const email = String(payout.email || '').trim();
