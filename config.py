@@ -22,3 +22,6 @@ if ENV not in APP_ORIGINS:
 APP = os.environ.get('APP_ORIGIN', APP_ORIGINS[ENV]).rstrip('/')
 BASE = os.environ.get('BASE_PATH', '/skills')
 SITE = (os.environ.get('SITE_URL') or (os.environ.get('SITE_ORIGIN', APP).rstrip('/') + BASE)).rstrip('/')
+# Same GTM containers as web-app (src/analytics/analytics.ts): /skills shares its origin, so visits land in the
+# app's GA property under the same _ga client id. Web-app uses its dev container on DEV only.
+GTM_ID = os.environ.get('GTM_ID', 'GTM-PZGP36B7' if ENV == 'DEV' else 'GTM-P8KR5LVK')
