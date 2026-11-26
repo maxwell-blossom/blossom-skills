@@ -161,10 +161,10 @@ h1,h2,h3,h4{margin:0;color:var(--ink);font-weight:700;letter-spacing:-.01em}
 .buy{padding:20px}
 .buy .amt{font-size:30px;font-weight:800;color:var(--ink);line-height:1}.buy .amt small{font-size:14px;color:var(--muted);font-weight:600}
 .buy .sub{font-size:13px;color:var(--muted);margin:4px 0 14px}
-.plans{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-.plan{display:flex;align-items:center;gap:10px;border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer;font-size:14px}
+.plans{display:flex;flex-direction:column;gap:10px;margin:14px 0 16px}
+.plan{display:flex;align-items:center;gap:12px;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;font-size:14px}
 .plan.on{border-color:var(--purple);background:var(--lav2)}
-.plan b{color:var(--ink)}.plan .save{margin-left:auto;font-size:11px;font-weight:800;background:var(--greent);color:#0b7a3b;border-radius:999px;padding:1px 7px}
+.plan b{color:var(--ink)}.plan .save{margin-left:6px;font-size:11px;font-weight:800;background:var(--greent);color:#0b7a3b;border-radius:999px;padding:1px 7px}
 .plan .pr{margin-left:auto;font-weight:800;color:var(--ink)}
 .plan input{accent-color:var(--purple)}
 .incl{list-style:none;margin:12px 0 0;padding:0;font-size:13.5px;color:var(--text)}.incl li{padding:4px 0;display:flex;gap:8px}.incl li:before{content:"✓";color:var(--teal);font-weight:800}
