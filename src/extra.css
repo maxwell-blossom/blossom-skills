@@ -12,3 +12,5 @@
 /* wizard: completed steps are clickable; publish checks are not bold form labels */
 .wsteps div.jump{cursor:pointer}.wsteps div.jump:hover{background:var(--bg)}
 .f .checks label.check{margin:0;font-weight:600;color:var(--ink);font-size:14px}.check input[type=checkbox]{margin:0}
+/* library card screenshot: taller strip (Max, Nov 26: +40%) */
+.grid .sk .shot{height:185px}
