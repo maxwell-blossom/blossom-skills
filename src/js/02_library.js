@@ -7,7 +7,7 @@ function skillCard(s){
     ${(s.shots||[]).length?`<img class="shot" src="${shotUrl(s.shots[0][0])}" alt="" loading="lazy">`:''}
     ${(s.highlights||[]).length?`<ul class="hl">${s.highlights.slice(0,3).map(h=>`<li>${esc(h)}</li>`).join('')}</ul>`:''}
     <div class="req">${reqChips(s)}</div>
-    <div class="bot"><span class="l"><span>${fmtN(s.downloads)} downloads</span><span>${s.ratings?`${stars(s.rating)} <b style="color:var(--ink)">${s.rating.toFixed(1)}</b> <span style="color:var(--muted)">(${s.ratings})</span>`:'No ratings yet'}</span></span>${!s.price.free&&tokens()[s.id]?`<span class="price own">✓ Yours</span>`:`<span class="price ${p.cls}">${p.t}</span>`}<span class="upd">v${s.version} · updated ${ago(s.updated)}</span></div>
+    <div class="bot"><span class="l"><span>${fmtN(s.downloads)} downloads</span><span>${s.ratings?`${stars(s.rating)} <b style="color:var(--ink)">${s.rating.toFixed(1)}</b> <span style="color:var(--muted)">(${s.ratings})</span>`:'No ratings yet'}</span></span>${!s.price.free&&tokens()[s.id]?`<span class="price own">✓ ${owned()[s.id]==='once'?'Purchased':'Subscribed'}</span>`:`<span class="price ${p.cls}">${p.t}</span>`}<span class="upd">v${s.version} · updated ${ago(s.updated)}</span></div>
   </div>`;
 }
 function mcpCard(m){
@@ -16,7 +16,7 @@ function mcpCard(m){
     <div class="top"><div class="em mcp">${mIcon(m,true)}</div><div style="min-width:0"><h3>${esc(m.name)}${m.creator?' <span class="badge soon">Coming soon</span>':''}${m.trades?' <span class="badge warn">⚠️ can place orders</span>':''}</h3><div class="by">${by}</div></div></div>
     <p>${esc(m.pitch)}</p>
     <ul class="hl">${m.tools.slice(0,3).map(([t,d])=>`<li><b style="font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--purple);font-weight:600">${esc(t)}</b> <span>${esc(d.split('.')[0])}</span></li>`).join('')}</ul><div class="req"><span class="chip rq">${m.tools.length} tools</span><span class="chip rq">${m.auth.split('·')[0].trim()}</span></div>
-    <div class="bot"><span class="l"><span>${fmtN(m.installs)} connected</span><span>${m.ratings?`${stars(m.rating)} <b style="color:var(--ink)">${m.rating.toFixed(1)}</b>`:'Not rated yet'}</span></span><span class="price ${/PRO\+/.test(m.price)?'pro':/^Free/.test(m.price)?'free':''}">${esc(m.price.split('·')[0].trim())}</span></div>
+    <div class="bot"><span class="l">${m.creator?`<span>Coming soon · join the waitlist</span>`:`<span>${fmtN(m.installs)} connected</span><span>${m.ratings?`${stars(m.rating)} <b style="color:var(--ink)">${m.rating.toFixed(1)}</b>`:'Not rated yet'}</span>`}</span><span class="price ${/PRO\+/.test(m.price)?'pro':/^Free/.test(m.price)?'free':''}">${esc(m.price.split('·')[0].trim())}</span></div>
   </div>`;
 }
 // Placeholder cards shown while the catalogue is loading, so the library never flashes the empty state.
