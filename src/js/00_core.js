@@ -55,6 +55,7 @@ async function downloadSkill(s){
     const r=await fetch(API+'download?skill='+encodeURIComponent(s.id)+'&token='+encodeURIComponent(t)); if(!r.ok){ toast(await r.text()); return; } text=await r.text(); }
   const blob=new Blob([text],{type:'text/markdown'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=s.id+'-SKILL.md'; a.click();
   const d=LS.get('dl',{}); d[s.id]=(d[s.id]||0)+1; LS.set('dl',d); toast('Downloaded — “Install it” below has the steps for Claude, Claude Code, Cursor, ChatGPT and Grok', 8000);
+  if(s.remote){ s.downloads=(s.downloads||0)+1; document.querySelectorAll('.stats b').forEach(b=>{ if(b.nextSibling&&/^downloads/.test(b.nextSibling.textContent||'')) b.textContent=fmtN(s.downloads); }); }   // the count the server just incremented, reflected right away
 }
 async function restoreAccess(){
   const me=await requireMe(); if(!me) return;
