@@ -52,7 +52,11 @@ function detail(id){
   // Star breakdown: real counts only. Until ratings exist the bars stay empty — no invented distribution.
   const dist = [5,4,3,2,1].map(n=>[n, (s.reviews||[]).filter(r=>r[1]===n).length]);
   const tot = dist.reduce((a,[,v])=>a+v,0) || 1;
-  const reviews = (s.reviews||[]).map(([h,r,t,d])=>`<div class="rev">${avatar(h,36)}<div style="flex:1"><div class="who"><b>@${esc(h)}</b> ${badge(creator(h))} · ${stars(r)}${d?` · <span style="color:var(--ter)">${ago(d)}</span>`:''}</div>${t?`<p>${esc(t)}</p>`:''}</div></div>`).join('');
+  // Creator replies sit under the review; the creator sees Reply / Edit / Remove on their own skill's reviews.
+  const own = ownsSkill(s);
+  const reviews = (s.reviews||[]).map(([h,r,t,d,rp,rd])=>`<div class="rev">${avatar(h,36)}<div style="flex:1;min-width:0"><div class="who"><b>@${esc(h)}</b> ${badge(creator(h))} · ${stars(r)}${d?` · <span style="color:var(--ter)">${ago(d)}</span>`:''}</div>${t?`<p>${esc(t)}</p>`:''}
+    ${rp?`<div class="reply">${avatar(s.creator,22)}<div><div class="who"><b>@${esc(s.creator)}</b> <span class="badge official">Creator</span>${rd?` · <span style="color:var(--ter)">${ago(rd)}</span>`:''}</div><p>${esc(rp)}</p></div></div>`:''}
+    ${own?`<div class="ract"><button class="lnk" data-reply="${esc(h)}" style="margin:0">${rp?'Edit reply':'Reply'}</button>${rp?`<button class="lnk" data-unreply="${esc(h)}" style="color:var(--muted)">Remove</button>`:''}</div><div class="rbox" data-rbox="${esc(h)}" hidden><textarea placeholder="Reply as the creator — thank them, answer a question, say what you changed." maxlength="1000">${esc(rp||'')}</textarea><div class="prow"><button class="pill pri sm" data-rgo="${esc(h)}">${rp?'Save reply':'Post reply'}</button><button class="lnk" data-rcancel="${esc(h)}" style="color:var(--muted)">Cancel</button></div></div>`:''}</div></div>`).join('');
   const tabsHtml = `<div class="dtabs"><button class="${state.dtab==='overview'?'on':''}" data-dtab="overview">Overview</button><button class="${state.dtab==='updates'?'on':''}" data-dtab="updates">Updates <span class="small">(${s.log.length})</span></button><button class="${state.dtab==='reviews'?'on':''}" data-dtab="reviews">Reviews <span class="small">(${s.ratings})</span></button></div>`;
   // Skills that need the Connector and list broker MCPs as alternatives: either source of portfolio data will do, so both are shown under "What it needs" — Max, Nov 25.
   const opt=(s.optional||[]).filter(r=>mcp(r)), brokerOpt=opt.filter(r=>mcp(r).compat), otherOpt=opt.filter(r=>!mcp(r).compat);
@@ -112,6 +116,13 @@ function bindDetail(id){
   bindCopy();
   const g=$('#get'); if(g) g.onclick=()=>downloadSkill(s);
   const rs=$('#restore'); if(rs) rs.onclick=e=>{ e.preventDefault(); restoreAccess(); };
+  // Creator replies to reviews
+  const setReply=(h,rp,rd)=>{ const r=(s.reviews||[]).find(x=>x[0]===h); if(r){ r[4]=rp; r[5]=rd; } };
+  document.querySelectorAll('[data-reply]').forEach(b=>b.onclick=()=>{ const box=document.querySelector(`[data-rbox="${CSS.escape(b.dataset.reply)}"]`); if(box){ box.hidden=false; box.querySelector('textarea').focus(); } });
+  document.querySelectorAll('[data-rcancel]').forEach(b=>b.onclick=()=>{ const box=document.querySelector(`[data-rbox="${CSS.escape(b.dataset.rcancel)}"]`); if(box) box.hidden=true; });
+  document.querySelectorAll('[data-rgo]').forEach(b=>b.onclick=async()=>{ const h=b.dataset.rgo; const box=document.querySelector(`[data-rbox="${CSS.escape(h)}"]`); const body=(box?.querySelector('textarea').value||'').trim(); if(!body){ toast('Write a reply first'); return; } b.disabled=true; b.textContent='Saving…';
+    try{ const j=await post('reply',{identity:await idToken(), skill:s.id, handle:h, body}); setReply(h, j.reply, (j.replied_at||'').slice(0,10)); toast('Reply posted'); route(); }catch(err){ b.disabled=false; b.textContent='Post reply'; toast(err.message, 6000); } });
+  document.querySelectorAll('[data-unreply]').forEach(b=>b.onclick=async()=>{ const h=b.dataset.unreply; b.disabled=true; try{ await post('reply',{identity:await idToken(), skill:s.id, handle:h, body:''}); setReply(h,'',''); toast('Reply removed'); route(); }catch(err){ b.disabled=false; toast(err.message, 6000); } });
   // Warm the checkout function (cold starts were most of the lag before Stripe opened — Max, Nov 26). GET answers 405 instantly; the container stays warm for the click.
   if($('#buy') && !window.__warmed){ window.__warmed=1; fetch(API+'checkout',{method:'GET'}).catch(()=>{}); }
   const b=$('#buy'); if(b) b.onclick=()=>{ const t=b.textContent; b.disabled=true; b.textContent='Opening secure checkout…'; checkout(s, state.plan).catch(()=>{}).finally(()=>{ if(document.body.contains(b)){ b.disabled=false; b.textContent=t; } }); };
