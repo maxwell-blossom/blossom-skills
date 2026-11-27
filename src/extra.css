@@ -16,3 +16,6 @@
 .grid .sk .shot{height:185px}
 /* MCP card tool list: names never break mid-word */
 .sk .hl li b{flex:none}.sk .hl li span{min-width:0}
+/* creator replies under reviews */
+.rev .reply{display:flex;gap:10px;margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:10px}.rev .reply p{margin:3px 0 0;font-size:14px}.rev .reply .who{font-size:13px}
+.rev .ract{display:flex;gap:14px;margin-top:6px}.rev .ract .lnk{margin:0;font-size:12.5px}.rev .rbox{margin-top:8px}.rev .rbox textarea{width:100%;border:1px solid var(--border);border-radius:12px;padding:10px 12px;min-height:72px;resize:vertical;background:#fff;font:inherit;font-size:14px}.rev .rbox .prow{display:flex;gap:12px;align-items:center;margin-top:8px}
