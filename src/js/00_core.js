@@ -48,14 +48,15 @@ function askEmail(title, cta, onGo, hint, preset){
 }
 // Download: free skills come from the page, paid ones from the download function with the buyer's token.
 async function downloadSkill(s){
-  let text;
+  let text, n=null;
   if(s.price.free && s.skill && !s.remote){ text=s.skill+'\n'; }
-  else if(s.price.free){ const r=await fetch(API+'download?skill='+encodeURIComponent(s.id)); if(!r.ok){ toast(await r.text()); return; } text=await r.text(); }
+  else if(s.price.free){ const it=await idToken(); const r=await fetch(API+'download?skill='+encodeURIComponent(s.id)+(it?'&identity='+encodeURIComponent(it):'')); if(!r.ok){ toast(await r.text()); return; } text=await r.text(); n=r.headers.get('x-downloads'); }
   else { const t=tokens()[s.id]; if(!t){ toast('Buy the skill or restore access first'); return; }
-    const r=await fetch(API+'download?skill='+encodeURIComponent(s.id)+'&token='+encodeURIComponent(t)); if(!r.ok){ toast(await r.text()); return; } text=await r.text(); }
+    const r=await fetch(API+'download?skill='+encodeURIComponent(s.id)+'&token='+encodeURIComponent(t)); if(!r.ok){ toast(await r.text()); return; } text=await r.text(); n=r.headers.get('x-downloads'); }
   const blob=new Blob([text],{type:'text/markdown'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=s.id+'-SKILL.md'; a.click();
   const d=LS.get('dl',{}); d[s.id]=(d[s.id]||0)+1; LS.set('dl',d); toast('Downloaded — “Install it” below has the steps for Claude, Claude Code, Cursor, ChatGPT and Grok', 8000);
-  if(s.remote){ s.downloads=(s.downloads||0)+1; document.querySelectorAll('.stats b').forEach(b=>{ if(b.nextSibling&&/^downloads/.test(b.nextSibling.textContent||'')) b.textContent=fmtN(s.downloads); }); }   // the count the server just incremented, reflected right away
+  // The count is distinct people (server-side), so the page shows what the server now says rather than adding one.
+  if(s.remote && n!==null && !isNaN(+n)){ s.downloads=+n; document.querySelectorAll('.stats b').forEach(b=>{ if(b.nextSibling&&/^downloads/.test(b.nextSibling.textContent||'')) b.textContent=fmtN(s.downloads); }); }
 }
 async function restoreAccess(){
   const me=await requireMe(); if(!me) return;

@@ -22,6 +22,9 @@ export default async (req) => {
   if (typeof c.url === 'string' && /^https:\/\/(www\.)?blossomsocial\.com\/\S+$/.test(c.url.trim())) row.url = c.url.trim().slice(0, 200);
   if (c.email) row.email = c.email;
   if (c.payout_method && c.payout_email) { row.payout_method = c.payout_method; row.payout_email = c.payout_email; }
+  // Profile photo: the account's Blossom photo at its standard media path, stored only when it actually serves (accounts without a photo keep the initial).
+  const photo = `https://media.blossomsocial.com/prod/user-media/low/${owner}.png?w=256`;
+  if (await fetch(photo, { method: 'HEAD' }).then(r => r.ok).catch(() => false)) row.photo_url = photo;
   await sb.from('creators').upsert(row, { onConflict: 'handle', ignoreDuplicates: false });
   let id = slug(k.name) || 'skill';
   const { data: clash } = await sb.from('skills').select('id').eq('id', id).maybeSingle();
